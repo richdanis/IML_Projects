@@ -16,11 +16,15 @@ train_features = train_features.drop(columns='ABPm')
 train_features = train_features.fillna(train_features.mean())
 train_features = train_features.to_numpy()
 pids = np.unique(train_features[:,0])
-print(len(pids))
 # have to somehow exclude age?
 
 train_features = train_features[:,1:]
+age = train_features[::12,0]
+age = age.reshape((len(age),1))
+train_features = train_features[:,1:]
 train_features = train_features.reshape((len(pids),12*train_features.shape[-1]))
+train_features = np.hstack((age,train_features))
+
 
 
 
