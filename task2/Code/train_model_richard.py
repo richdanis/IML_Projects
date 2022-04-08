@@ -2,28 +2,59 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.linear_model import SGDClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import PolynomialFeatures
 
 fname = "Data/"
-train_features = pd.read_csv(fname + "train_features.csv")
-train_labels = pd.read_csv(fname + "train_labels.csv")
-test_features = pd.read_csv(fname + "test_features.csv")
+train_df = pd.read_csv(fname + "train_features.csv")
+label_df = pd.read_csv(fname + "train_labels.csv")
+test_df = pd.read_csv(fname + "test_features.csv")
 
-train_features = train_features.sort_values(by=['pid','Time'])
-train_features = train_features.drop(columns='Time')
-train_features = train_features.drop(columns='HCO3')
-train_features = train_features.drop(columns='ABPm')
+# PREPARING TRAINING FEATURES
 
-train_features = train_features.fillna(train_features.mean())
-train_features = train_features.to_numpy()
-pids = np.unique(train_features[:,0])
-# have to somehow exclude age?
+train_df = train_df.sort_values(by=['pid','Time'])
+train_df = train_df.drop(columns=['Time'])
 
-train_features = train_features[:,1:]
-age = train_features[::12,0]
+# fill NaN with median for each column
+train_df = train_df.fillna(train_df.mean())
+
+# convert to numpy array
+X = train_df.to_numpy()
+pids = np.unique(X[:,0])
+
+# exclude pids
+X = X[:,1:]
+age = X[::12,0]
 age = age.reshape((len(age),1))
-train_features = train_features[:,1:]
-train_features = train_features.reshape((len(pids),12*train_features.shape[-1]))
-train_features = np.hstack((age,train_features))
+
+# exclude ages
+X = X[:,1:]
+X = X.reshape((len(pids),12*X.shape[-1]))
+X = np.hstack((age,X))
+
+#poly = PolynomialFeatures(2)
+#X = poly.fit_transform(X)
+
+# PREPARING TRAINING LABELS
+label_df = label_df.sort_values(by=['pid'])
+label_df = label_df.drop(columns=['LABEL_Sepsis','LABEL_RRate','LABEL_ABPm','LABEL_SpO2','LABEL_Heartrate'])
+
+y = label_df.to_numpy()
+y = y[:,1:]
+
+#accuracy = np.empty((y.shape[1],))
+
+clf = SGDClassifier()
+for i in range(y.shape[1]):
+    print("label: " + str(i))
+    scores = cross_val_score(clf, X, y[:,i], cv=10)
+    print(scores)
+
+#for i in range(y.shape[1]):
+    #clf = LogisticRegressionCV(cv=10, max_iter=100, solver='sag').fit(X,y[:,i])
+    #accuracy[i] = clf.score(X,y)
+
 
 
 

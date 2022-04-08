@@ -32,7 +32,7 @@ print(train_features.describe())
 #corr = train_features.corr()
 #fig = plt.figure(figsize=(12, 9))
 #sns.heatmap(corr, vmax=.8, square=True)
-#plt.savefig('correlation.png')
+#plt.savefig('features_correlation.png')
 #plt.show()
 
 # HCO3 can probably be dropped, really similar to BaseExcess
