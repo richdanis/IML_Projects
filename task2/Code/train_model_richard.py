@@ -5,6 +5,7 @@ import seaborn as sns
 from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import PolynomialFeatures
+from sklearn.feature_selection import SelectKBest
 
 fname = "Data/"
 train_df = pd.read_csv(fname + "train_features.csv")
@@ -18,7 +19,7 @@ train_df = train_df.drop(columns=['Time'])
 
 # fill NaN with median for each column
 train_df = train_df.fillna(train_df.mean())
-
+train_df=(train_df-train_df.mean())/train_df.std()
 # convert to numpy array
 X = train_df.to_numpy()
 pids = np.unique(X[:,0])
@@ -33,8 +34,7 @@ X = X[:,1:]
 X = X.reshape((len(pids),12*X.shape[-1]))
 X = np.hstack((age,X))
 
-#poly = PolynomialFeatures(2)
-#X = poly.fit_transform(X)
+#poly = PolynomialFeatures(10)
 
 # PREPARING TRAINING LABELS
 label_df = label_df.sort_values(by=['pid'])
@@ -48,7 +48,9 @@ y = y[:,1:]
 clf = SGDClassifier()
 for i in range(y.shape[1]):
     print("label: " + str(i))
-    scores = cross_val_score(clf, X, y[:,i], cv=10)
+    X_new = SelectKBest(k=1).fit_transform(X, y[:,i])
+    #X_new = poly.fit_transform(X_new)
+    scores = cross_val_score(clf, X_new, y[:,i], cv=10)
     print(scores)
 
 #for i in range(y.shape[1]):
