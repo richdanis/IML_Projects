@@ -7,7 +7,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.feature_selection import SelectKBest
 
 fname = "Data/"
-train_df = pd.read_csv(fname + "train_features.csv")
+train_df = pd.read_csv(fname + "data_interpolated_means.csv")
 label_df = pd.read_csv(fname + "train_labels.csv")
 test_df = pd.read_csv(fname + "test_features.csv")
 
@@ -40,45 +40,21 @@ label_df = label_df.drop(columns=['LABEL_Sepsis','LABEL_RRate','LABEL_ABPm','LAB
 y = label_df.to_numpy()
 y = y[:,1:]
 
+#accuracy = np.empty((y.shape[1],))
+
 clf = SGDClassifier()
 for i in range(y.shape[1]):
     print("label: " + str(i))
-    max = 0
-    maxIdx = 12
-    for j in range(12,132,12):
-        X_new = SelectKBest(k=j).fit_transform(X, y[:,i])
-        scores = cross_val_score(clf, X_new, y[:,i], cv=10)
-        if np.mean(scores) > max:
-            max = np.mean(scores)
-            maxIdx = j
-    print(max)
-    print("Features: ",maxIdx)
+    X_new = SelectKBest(k=1).fit_transform(X, y[:,i])
+    scores = cross_val_score(clf, X_new, y[:,i], cv=10)
+    print(scores)
+
+#for i in range(y.shape[1]):
+    #clf = LogisticRegressionCV(cv=10, max_iter=100, solver='sag').fit(X,y[:,i])
+    #accuracy[i] = clf.score(X,y)
 
 
 
-
-'''
-label: 0
-0.7725716859288823
-label: 1
-0.9227684653973005
-label: 2
-0.7665174745711039
-label: 3
-0.770307724287021
-label: 4
-0.7648852858845376
-label: 5
-0.8095817466256479
-label: 6
-0.9018157201851391
-label: 7
-0.7889439039937918
-label: 8
-0.9603579723400127
-label: 9
-0.9279820958399159
-'''
 
 
 

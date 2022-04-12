@@ -8,7 +8,7 @@ fname = "Data/"
 pd.options.display.max_columns = 40
 
 train_labels = pd.read_csv(fname + "train_labels.csv")
-train_labels = train_labels.drop(columns=['pid','LABEL_Sepsis','LABEL_RRate','LABEL_ABPm','LABEL_SpO2','LABEL_Heartrate'])
+train_labels = train_labels.drop(columns=['pid','LABEL_RRate','LABEL_ABPm','LABEL_SpO2','LABEL_Heartrate'])
 
 print(train_labels.describe())
 #print(train_labels.head(100))
