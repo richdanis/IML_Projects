@@ -6,35 +6,35 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.feature_selection import SelectKBest
 
+def prepare_dataset(df, columns):
+
+    df = df.drop(columns=columns)
+    df = df.fillna(df.mean())
+    df = (df - df.mean()) / df.std()
+
+    X = df.to_numpy()
+    pids = np.unique(X[:, 0])
+
+    # exclude pids
+    X = X[:, 1:]
+    age = X[::12, 0]
+    age = age.reshape((len(age), 1))
+
+    # exclude ages
+    X = X[:, 1:]
+    X = X.reshape((len(pids), 12 * X.shape[-1]))
+    X = np.hstack((age, X))
+
+    return X
+
 fname = "Data/"
 train_df = pd.read_csv(fname + "train_features.csv")
 label_df = pd.read_csv(fname + "train_labels.csv")
 test_df = pd.read_csv(fname + "test_features.csv")
 
-# PREPARING TRAINING FEATURES
-
-train_df = train_df.sort_values(by=['pid','Time'])
-# train_df = train_df.drop(columns=['Time'])
-
-# fill NaN with median for each column
-train_df = train_df.fillna(train_df.mean())
-train_df=(train_df-train_df.mean())/train_df.std()
-# convert to numpy array
-X = train_df.to_numpy()
-pids = np.unique(X[:,0])
-
-# exclude pids
-X = X[:,1:]
-age = X[::12,0]
-age = age.reshape((len(age),1))
-
-# exclude ages
-X = X[:,1:]
-X = X.reshape((len(pids),12*X.shape[-1]))
-X = np.hstack((age,X))
+X = prepare_dataset(train_df,["Time"])
 
 # PREPARING TRAINING LABELS
-label_df = label_df.sort_values(by=['pid'])
 label_df = label_df.drop(columns=['LABEL_Sepsis','LABEL_RRate','LABEL_ABPm','LABEL_SpO2','LABEL_Heartrate'])
 
 y = label_df.to_numpy()
@@ -54,33 +54,37 @@ for i in range(y.shape[1]):
     print(max)
     print("Features: ",maxIdx)
 
-#for i in range(y.shape[1]):
-#    print("label: " + str(i))
-#    X_new = SelectKBest(k=12).fit_transform(X, y[:,i])
-#    scores = cross_val_score(clf, X_new, y[:,i], cv=10)
-#    print(np.mean(scores))
-
 '''
 label: 0
-0.7725716859288823
+0.779047725949946
+Features:  121
 label: 1
-0.9227684653973005
+0.9264010975305563
+Features:  61
 label: 2
-0.7665174745711039
+0.7689915190820653
+Features:  85
 label: 3
-0.770307724287021
+0.7738351209777999
+Features:  85
 label: 4
-0.7648852858845376
+0.7697289432111084
+Features:  73
 label: 5
-0.8095817466256479
+0.812582716665281
+Features:  109
 label: 6
-0.9018157201851391
+0.9026582411795683
+Features:  73
 label: 7
-0.7889439039937918
+0.7897859538261134
+Features:  61
 label: 8
-0.9603579723400127
+0.9624638175216873
+Features:  13
 label: 9
-0.9279820958399159
+0.931140378592611
+Features:  25
 '''
 
 
