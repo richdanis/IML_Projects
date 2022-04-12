@@ -19,7 +19,7 @@ def prepare_dataset(df, columns):
 
     # exclude ages
     X = X[:, 1:]
-    X = X.reshape((len(pids), 12 * X.shape[-1]))
+    X = X.reshape((len(age), 12 * X.shape[-1]))
     X = np.hstack((age, X))
 
     return X
@@ -29,12 +29,8 @@ train_df = pd.read_csv(fname + "train_features.csv")
 label_df = pd.read_csv(fname + "train_labels.csv")
 test_df = pd.read_csv(fname + "test_features.csv")
 
-pids = test_df.to_numpy()[::12,0]
-
 X = prepare_dataset(train_df,["Time"])
 T = prepare_dataset(test_df,["Time"])
-
-
 
 # PREPARING TRAINING LABELS
 label_df = label_df.sort_values(by=['pid'])
@@ -62,4 +58,11 @@ for i in range(y.shape[1]):
 
     # calculate sigmoid to get probabilities in range [0,1]
     output[:,i] = 1/(1 + np.exp(np.dot(T_new,coef)))
+
+pids = test_df.to_numpy()[::12,0]
+pids = pids.reshape((len(pids),1))
+output = np.hstack((pids, output))
+df = pd.DataFrame(output,columns=label_df.columns)
+df = df.astype({'pid':'int32'})
+df.to_csv('Data/pred_st1.csv', index=False, float_format='%.3f',header=True)
 
