@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 
 sample = 'sample.csv'
-pred_st1 = 'pred_st1'
-pred_st2 = 'pred_st2'
-pred_st3 = 'pred_st3'
+pred_st1 = 'pred_st1.csv'
+pred_st2 = 'pred_st2.csv'
+pred_st3 = 'pred_st3.csv'
 
 df_sample = pd.read_csv(sample)
 df_st1 = pd.read_csv(pred_st1)
