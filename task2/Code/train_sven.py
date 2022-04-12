@@ -30,10 +30,10 @@ df_subtask1 = df_labels[TEST1]
 df_subtask2 = df_labels[TEST2]
 df_subtask3 = df_labels[TEST3]
 
-#7
-# PREPARING TRAINING FEATURES
-df_train = df_train.drop(columns=['Time'])
 
+# dropping the time
+df_train = df_train.drop(columns=['Time'])
+    	
 # Normalizing the colums
 df_train=(df_train-df_train.mean())/df_train.std()
 
@@ -53,10 +53,10 @@ X = X[:,1:]
 X = X.reshape((len(pids),12*X.shape[-1]))
 X = np.hstack((age,X))
 
-
 clf = SGDClassifier()
+
 for i in range(y.shape[1]):
     print("label: " + TEST1[i])
     X_new = SelectKBest(k=120).fit_transform(X, y[:,i])
-    scores = cross_val_score(clf, X_new, y[:,i], cv=10)
+    scores = cross_val_score(clf, X_new, y[:,i], cv=5)
     print(scores)
