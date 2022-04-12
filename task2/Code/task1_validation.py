@@ -14,7 +14,7 @@ test_df = pd.read_csv(fname + "test_features.csv")
 # PREPARING TRAINING FEATURES
 
 train_df = train_df.sort_values(by=['pid','Time'])
-train_df = train_df.drop(columns=['Time'])
+# train_df = train_df.drop(columns=['Time'])
 
 # fill NaN with median for each column
 train_df = train_df.fillna(train_df.mean())
@@ -45,7 +45,7 @@ for i in range(y.shape[1]):
     print("label: " + str(i))
     max = 0
     maxIdx = 12
-    for j in range(12,132,12):
+    for j in range(13,132,12):
         X_new = SelectKBest(k=j).fit_transform(X, y[:,i])
         scores = cross_val_score(clf, X_new, y[:,i], cv=10)
         if np.mean(scores) > max:
@@ -54,8 +54,11 @@ for i in range(y.shape[1]):
     print(max)
     print("Features: ",maxIdx)
 
-
-
+#for i in range(y.shape[1]):
+#    print("label: " + str(i))
+#    X_new = SelectKBest(k=12).fit_transform(X, y[:,i])
+#    scores = cross_val_score(clf, X_new, y[:,i], cv=10)
+#    print(np.mean(scores))
 
 '''
 label: 0
