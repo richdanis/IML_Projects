@@ -57,4 +57,3 @@ output = np.hstack((pids, output))
 df = pd.DataFrame(output,columns=["pid","LABEL_Sepsis"])
 df = df.astype({'pid':'int32'})
 df.to_csv('Data/pred_st2.csv', index=False, float_format='%.3f', header=True)
-

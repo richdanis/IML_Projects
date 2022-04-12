@@ -15,17 +15,26 @@ def get_score(df_true, df_submission):
     task2 = metrics.roc_auc_score(df_true['LABEL_Sepsis'], df_submission['LABEL_Sepsis'])
     task3 = np.mean([0.5 + 0.5 * np.maximum(0, metrics.r2_score(df_true[entry], df_submission[entry])) for entry in VITALS])
     score = np.mean([task1, task2, task3])
-    print(task1, task2, task3)
-    return score
+    #print(task1, task2, task3)
+    return score, task1, task2, task3
 
 
-filename = '../Data/sample.zip'
-df_submission = pd.read_csv(filename)
+filename_sub = 'Data/Submission_Sven.csv'
+df_submission = pd.read_csv(filename_sub)
 
 # generate a baseline based on sample.zip
-df_true = pd.read_csv(filename)
+filename_ground = 'Data/sample.csv'
+df_true = pd.read_csv(filename_ground)
+
+
 for label in TESTS + ['LABEL_Sepsis']:
     # round classification labels
     df_true[label] = np.around(df_true[label].values)
 
-print('Score of sample.zip with itself as groundtruth', get_score(df_true, df_submission))
+over_all, T1, T2, T3 = get_score(df_true, df_submission)
+#print('Score of sample.zip with itself as groundtruth', get_score(df_true, df_submission))
+
+print(f'Score of {filename_sub} with {filename_ground} as groundtruth: {over_all}' )
+print(f'Task1: {T1}')
+print(f'Task2: {T2}')
+print(f'Task3: {T3}')
