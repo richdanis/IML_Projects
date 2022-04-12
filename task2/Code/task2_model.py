@@ -47,7 +47,7 @@ clf.fit(X_new, y)
 coef = clf.coef_
 coef = coef.reshape((coef.shape[1],))
 # calculate sigmoid to get probabilities in range [0,1]
-output = 1/(1 + np.exp(np.dot(T_new,coef)))
+output = 1/(1 + np.exp(-np.dot(T_new,coef)))
 
 
 pids = test_df.to_numpy()[::12,0]

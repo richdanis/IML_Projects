@@ -53,6 +53,7 @@ X = X[:,1:]
 X = X.reshape((len(pids),12*X.shape[-1]))
 X = np.hstack((age,X))
 
+#SDGClassifer
 clf = SGDClassifier()
 
 for i in range(y.shape[1]):

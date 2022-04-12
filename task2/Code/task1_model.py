@@ -57,7 +57,7 @@ for i in range(y.shape[1]):
     coef = coef.reshape((coef.shape[1],))
 
     # calculate sigmoid to get probabilities in range [0,1]
-    output[:,i] = 1/(1 + np.exp(np.dot(T_new,coef)))
+    output[:,i] = 1/(1 + np.exp(-np.dot(T_new,coef)))
 
 pids = test_df.to_numpy()[::12,0]
 pids = pids.reshape((len(pids),1))
