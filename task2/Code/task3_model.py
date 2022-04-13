@@ -1,9 +1,8 @@
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import SGDClassifier
-from sklearn.model_selection import cross_val_score
-from sklearn.feature_selection import SelectKBest
 from sklearn.metrics import roc_auc_score
+from sklearn.linear_model import SGDRegressor
+from sklearn.feature_selection import SelectKBest, f_regression
 
 def prepare_dataset(df, columns):
 
@@ -33,27 +32,26 @@ test_df = pd.read_csv(fname + "test_features.csv")
 X = prepare_dataset(train_df,["Time"])
 T = prepare_dataset(test_df,["Time"])
 
-# PREPARING TRAINING LABELS
+columns = ["LABEL_RRate","LABEL_ABPm","LABEL_SpO2","LABEL_Heartrate"]
 
-y = (label_df.loc[:,"LABEL_Sepsis"]).to_numpy()
-
-clf = SGDClassifier()
-
-selector = SelectKBest(k=61)
-X_new = selector.fit_transform(X, y)
-mask = selector.get_support()
-T_new = T[:,mask]
-
-clf.fit(X_new, y)
-coef = clf.coef_
-coef = coef.reshape((coef.shape[1],))
-# calculate sigmoid to get probabilities in range [0,1]
-output = 1/(1 + np.exp(-np.dot(T_new,coef)))
-
-pids = test_df.to_numpy()[::12,0]
+pids = test_df["pid"].to_numpy()[::12]
 pids = pids.reshape((len(pids),1))
-output = output.reshape((len(output),1))
+
+y = label_df[columns].to_numpy()
+
+output = np.empty((pids.shape[0],4))
+
+for i in range(4):
+    reg = SGDRegressor()
+    selector = SelectKBest(f_regression,k=61)
+    X_new = selector.fit_transform(X, y[:,i])
+    mask = selector.get_support()
+    T_new = T[:, mask]
+
+    reg.fit(X_new,y[:,i])
+    output[:,i] = reg.predict(T_new)
+
 output = np.hstack((pids, output))
-df = pd.DataFrame(output,columns=["pid","LABEL_Sepsis"])
+df = pd.DataFrame(output,columns=["pid"] + columns)
 df = df.astype({'pid':'int32'})
-df.to_csv('Data/pred_st2.csv', index=False, float_format='%.3f', header=True)
+df.to_csv('Data/pred_st3.csv', index=False, float_format='%.3f', header=True)
