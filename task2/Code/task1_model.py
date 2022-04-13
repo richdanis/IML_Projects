@@ -28,7 +28,7 @@ for i in range(y.shape[1]):
     clf = SGDClassifier()
 
     # select 61 best feature columns
-    selector = SelectKBest(k=61)
+    selector = SelectKBest(k=13)
     X_new = selector.fit_transform(X, y[:,i])
 
     # apply mask to get the selected columns from T

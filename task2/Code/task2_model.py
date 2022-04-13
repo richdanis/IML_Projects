@@ -1,37 +1,18 @@
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import SGDClassifier
-from sklearn.model_selection import cross_val_score
 from sklearn.feature_selection import SelectKBest
-from sklearn.metrics import roc_auc_score
-
-def prepare_dataset(df, columns):
-
-    df = df.drop(columns=columns)
-    df = df.fillna(df.mean())
-    df = (df - df.mean()) / df.std()
-
-    X = df.to_numpy()
-
-    # exclude pids
-    X = X[:, 1:]
-    age = X[::12, 0]
-    age = age.reshape((len(age), 1))
-
-    # exclude ages
-    X = X[:, 1:]
-    X = X.reshape((len(age), 12 * X.shape[-1]))
-    X = np.hstack((age, X))
-
-    return X
+import helper_functions as hf
 
 fname = "Data/"
 train_df = pd.read_csv(fname + "train_features.csv")
 label_df = pd.read_csv(fname + "train_labels.csv")
 test_df = pd.read_csv(fname + "test_features.csv")
 
-X = prepare_dataset(train_df,["Time"])
-T = prepare_dataset(test_df,["Time"])
+train_df, label_df = hf.remove_outliers(train_df, label_df)
+
+X = hf.prepare_dataset(train_df,["Time"])
+T = hf.prepare_dataset(test_df,["Time"])
 
 # PREPARING TRAINING LABELS
 
@@ -39,7 +20,7 @@ y = (label_df.loc[:,"LABEL_Sepsis"]).to_numpy()
 
 clf = SGDClassifier()
 
-selector = SelectKBest(k=61)
+selector = SelectKBest(k=13)
 X_new = selector.fit_transform(X, y)
 mask = selector.get_support()
 T_new = T[:,mask]

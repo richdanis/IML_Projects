@@ -24,9 +24,9 @@ for i in range(y.shape[1]):
     #max = 0
     #maxIdx = 12
     #for j in range(13,132,12):
-    X_new = SelectKBest(k=61).fit_transform(X, y[:,i])
+    X_new = SelectKBest(k=13).fit_transform(X, y[:,i])
     scores = cross_val_score(clf, X_new, y[:,i], cv=10)
-    print(scores)
+    print(np.mean(scores))
     # if np.mean(scores) > max:
     #max = np.mean(scores)
     #maxIdx = j
@@ -35,35 +35,25 @@ for i in range(y.shape[1]):
 
 '''
 label: 0
-0.779047725949946
-Features:  121
+0.7792300076430765
 label: 1
-0.9264010975305563
-Features:  61
+0.937055457183812
 label: 2
-0.7689915190820653
-Features:  85
+0.8139607183947908
 label: 3
-0.7738351209777999
-Features:  85
+0.8236399539783438
 label: 4
-0.7697289432111084
-Features:  73
+0.8152471216065148
 label: 5
-0.812582716665281
-Features:  109
+0.8266678090482056
 label: 6
-0.9026582411795683
-Features:  73
+0.9140904602981615
 label: 7
-0.7897859538261134
-Features:  61
+0.7983435467682842
 label: 8
-0.9624638175216873
-Features:  13
+0.9644486785093553
 label: 9
-0.931140378592611
-Features:  25
+0.9445162966166467
 '''
 
 

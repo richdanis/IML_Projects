@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.feature_selection import SelectKBest
@@ -20,8 +18,13 @@ X = hf.prepare_dataset(train_df,["Time"])
 label_df = label_df.loc[:,"LABEL_Sepsis"]
 
 y = label_df.to_numpy()
+# polynomial features are not improving the predictions
 
 clf = SGDClassifier()
-X_new = SelectKBest(k=61).fit_transform(X, y)
+X_new = SelectKBest(k=13).fit_transform(X, y)
 scores = cross_val_score(clf, X_new, y, cv=10)
 print(np.mean(scores))
+
+'''
+0.9412519413686276
+'''
