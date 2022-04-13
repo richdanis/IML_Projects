@@ -1,14 +1,9 @@
 # Imports 
 import numpy as np
 import pandas as pd
-import sklearn as skcc
 from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.feature_selection import SelectKBest
-
-#Pandas Settings
-pd.set_option('display.max_rows', 30)
-pd.set_option('display.max_columns', None)
 
 #CSV->DataFrames
 train_str = 'data_interpolated_means.csv'
