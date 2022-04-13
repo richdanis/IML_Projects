@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.feature_selection import SelectKBest
 import helper_functions as hf
+from sklearn.svm import LinearSVC
 
 fname = "Data/"
 train_df = pd.read_csv(fname + "train_features.csv")
@@ -18,42 +18,33 @@ X = hf.prepare_dataset(train_df,["Time"])
 y = label_df.to_numpy()
 y = y[:,1:]
 
-clf = SGDClassifier()
+clf = LinearSVC(dual=False)
 for i in range(y.shape[1]):
     print("label: " + str(i))
-    #max = 0
-    #maxIdx = 12
-    #for j in range(13,132,12):
     X_new = SelectKBest(k=13).fit_transform(X, y[:,i])
-    scores = cross_val_score(clf, X_new, y[:,i], cv=10)
+    scores = cross_val_score(clf, X_new, y[:,i])
     print(np.mean(scores))
-    # if np.mean(scores) > max:
-    #max = np.mean(scores)
-    #maxIdx = j
-    #print(max)
-    #print("Features: ",maxIdx)
-
 '''
 label: 0
-0.7792300076430765
+0.7829673257626789
 label: 1
-0.937055457183812
+0.9460116060290137
 label: 2
-0.8139607183947908
+0.7924821562200108
 label: 3
-0.8236399539783438
+0.7958564308431975
 label: 4
-0.8152471216065148
+0.7923471806804845
 label: 5
-0.8266678090482056
+0.8318260115878106
 label: 6
-0.9140904602981615
+0.9035631993871333
 label: 7
-0.7983435467682842
+0.8076664831163296
 label: 8
-0.9644486785093553
+0.9742206284162339
 label: 9
-0.9445162966166467
+0.9441894476319046
 '''
 
 

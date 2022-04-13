@@ -21,7 +21,7 @@ pids = test_df["pid"].to_numpy()[::12]
 pids = pids.reshape((len(pids),1))
 
 y = label_df[columns].to_numpy()
-poly = PolynomialFeatures(2)
+# poly = PolynomialFeatures(2)
 
 output = np.empty((pids.shape[0],4))
 
@@ -29,10 +29,10 @@ for i in range(4):
     reg = SGDRegressor()
     selector = SelectKBest(f_regression,k=13)
     X_new = selector.fit_transform(X, y[:,i])
-    X_new = poly.fit_transform(X_new)
+    # X_new = poly.fit_transform(X_new)
     mask = selector.get_support()
     T_new = T[:, mask]
-    T_new = poly.fit_transform(T_new)
+    # T_new = poly.fit_transform(T_new)
 
     reg.fit(X_new,y[:,i])
     output[:,i] = reg.predict(T_new)

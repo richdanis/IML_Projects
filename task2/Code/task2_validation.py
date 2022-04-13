@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import SGDClassifier
+from sklearn.svm import LinearSVC
 from sklearn.model_selection import cross_val_score
 from sklearn.feature_selection import SelectKBest
 import helper_functions as hf
@@ -20,11 +20,11 @@ label_df = label_df.loc[:,"LABEL_Sepsis"]
 y = label_df.to_numpy()
 # polynomial features are not improving the predictions
 
-clf = SGDClassifier()
+clf = LinearSVC(dual=False)
 X_new = SelectKBest(k=13).fit_transform(X, y)
 scores = cross_val_score(clf, X_new, y, cv=10)
 print(np.mean(scores))
 
 '''
-0.9412519413686276
+0.948373732596697
 '''

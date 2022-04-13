@@ -18,12 +18,10 @@ X = hf.prepare_dataset(train_df,["Time"])
 columns = ["LABEL_RRate","LABEL_ABPm","LABEL_SpO2","LABEL_Heartrate"]
 
 y = label_df[columns].to_numpy()
-poly = PolynomialFeatures(2)
 
 for i in range(4):
     reg = SGDRegressor()
     X_new = SelectKBest(f_regression, k=13).fit_transform(X, y[:, i])
-    X_new = poly.fit_transform(X_new)
     scores = cross_val_score(reg, X_new, y[:, i], cv=10)
     print(np.mean(scores))
 
