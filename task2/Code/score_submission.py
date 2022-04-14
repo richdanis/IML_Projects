@@ -19,11 +19,11 @@ def get_score(df_true, df_submission):
     return score, task1, task2, task3
 
 
-filename_sub = 'Data/Submission1.csv'
+filename_sub = 'Data/Submission_Sven.csv'
 df_submission = pd.read_csv(filename_sub)
 
 # generate a baseline based on sample.zip
-filename_ground = 'Data/sample.csv'
+filename_ground = 'Data/train_labels_sorted.csv'
 df_true = pd.read_csv(filename_ground)
 
 

@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import sklearn.metrics as metrics
 from sklearn.linear_model import SGDClassifier
 from sklearn.feature_selection import SelectKBest
 
@@ -11,7 +12,14 @@ TEST1 = ['LABEL_BaseExcess', 'LABEL_Fibrinogen', 'LABEL_AST', 'LABEL_Alkalinepho
 SOL1= ['pid','LABEL_BaseExcess', 'LABEL_Fibrinogen', 'LABEL_AST', 'LABEL_Alkalinephos', 'LABEL_Bilirubin_total',
          'LABEL_Lactate', 'LABEL_TroponinI', 'LABEL_SaO2', 'LABEL_Bilirubin_direct', 'LABEL_EtCO2']
 
+#get score
+def get_score(df_true, df_submission):
+    df_submission = df_submission.sort_values('pid')
+    df_true = df_true.sort_values('pid')
+    task1 = np.mean([metrics.roc_auc_score(df_true[entry], df_submission[entry]) for entry in TEST1])
+    return task1
 
+# Sigmoind
 def sigmoid(T, coef):
     sol = 1/(1 + np.exp(-np.dot(T,coef)))
     return sol 
@@ -29,9 +37,10 @@ def prepare_dataset(df):
 
 # Import the data
 fname = 'Data/'
-df_train = pd.read_csv(fname + 'train_features_Sven_short.csv')
-df_label = pd.read_csv(fname + 'train_labels_sorted.csv')
-df_test = pd.read_csv(fname + 'test_features_Sven_short.csv')
+df_train = pd.read_csv(fname + 'train_features_train_set.csv')
+df_label = pd.read_csv(fname + 'train_labels_train_set.csv')
+df_test = pd.read_csv(fname + 'train_features_val_set.csv')
+df_true = pd.read_csv(fname + 'train_labels_val_set.csv')
 
 #df -> np matrix
 X_train = prepare_dataset(df_train)
@@ -67,8 +76,10 @@ pids = df_test['pid'].to_numpy()
 pids = pids.reshape((len(pids),1))
 
 output = np.hstack((pids, output))
-df_sig = pd.DataFrame(output,columns=SOL1)
-df_sig = df_sig.astype({'pid':'int32'})
+df = pd.DataFrame(output,columns=SOL1)
+df = df.astype({'pid':'int32'})
 
-df_sig.to_csv('Data/pred_st1_Sven.csv', index=False, float_format='%.3f',header=True)
+score = get_score(df_true, df)
+print(f'Score: {score}')
+#df.to_csv('Data/pred_st1_Sven.csv', index=False, float_format='%.3f',header=True)
 
