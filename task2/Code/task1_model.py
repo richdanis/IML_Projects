@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.linear_model import SGDClassifier
 from sklearn.feature_selection import SelectKBest
 import helper_functions as hf
+from sklearn.ensemble import GradientBoostingClassifier
 
 
 fname = "Data/"
@@ -21,22 +22,23 @@ y = y[:,1:]
 output = np.empty((T.shape[0],10))
 
 for i in range(y.shape[1]):
-    clf = SGDClassifier()
-
+    #clf = SGDClassifier()
+    clf = GradientBoostingClassifier()
     # select 61 best feature columns
-    selector = SelectKBest(k=80)
-    X_new = selector.fit_transform(X, y[:,i])
+    # selector = SelectKBest(k=80)
+    # X_new = selector.fit_transform(X, y[:,i])
 
     # apply mask to get the selected columns from T
-    mask = selector.get_support()
-    T_new = T[:,mask]
+    # mask = selector.get_support()
+    # T_new = T[:,mask]
 
-    clf.fit(X_new, y[:,i])
-    coef = clf.coef_
-    coef = coef.reshape((coef.shape[1],))
+    clf.fit(X, y[:,i])
+    #coef = clf.coef_
+    #coef = coef.reshape((coef.shape[1],))
 
     # calculate sigmoid to get probabilities in range [0,1]
-    output[:,i] = 1/(1 + np.exp(-np.dot(T_new,coef)))
+    #output[:,i] = 1/(1 + np.exp(-np.dot(T_new,coef)))
+    output[:,i] = clf.predict_proba(T)[:,1]
 
 pids = test_df.to_numpy()[::12,0]
 pids = pids.reshape((len(pids),1))

@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.linear_model import SGDClassifier
 from sklearn.feature_selection import SelectKBest
 import helper_functions as hf
+from sklearn.ensemble import GradientBoostingClassifier
 
 fname = "Data/"
 train_df = pd.read_csv(fname + "train_features.csv")
@@ -18,19 +19,20 @@ T = hf.min_mean_max(test_df)
 
 y = (label_df.loc[:,"LABEL_Sepsis"]).to_numpy()
 
-clf = SGDClassifier()
+#clf = SGDClassifier()
+clf = GradientBoostingClassifier()
 
-selector = SelectKBest(k=20)
-X_new = selector.fit_transform(X, y)
-mask = selector.get_support()
-T_new = T[:,mask]
+#selector = SelectKBest(k=20)
+#X_new = selector.fit_transform(X, y)
+#mask = selector.get_support()
+#T_new = T[:,mask]
 
-clf.fit(X_new, y)
-coef = clf.coef_
-coef = coef.reshape((coef.shape[1],))
+clf.fit(X, y)
+#coef = clf.coef_
+#coef = coef.reshape((coef.shape[1],))
 # calculate sigmoid to get probabilities in range [0,1]
-output = 1/(1 + np.exp(-np.dot(T_new,coef)))
-
+#output = 1/(1 + np.exp(-np.dot(T,coef)))
+output = clf.predict_proba(T)[:,1]
 pids = test_df.to_numpy()[::12,0]
 pids = pids.reshape((len(pids),1))
 output = output.reshape((len(output),1))
