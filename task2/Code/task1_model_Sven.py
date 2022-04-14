@@ -32,6 +32,11 @@ def remove_outliers(features,labels):
 
     return features, labels
 
+
+def sigmoid(T, coef):
+    sol = 1/(1 + np.exp(-np.dot(T,coef)))
+    return sol 
+    
 # Normalizing and retun a np matrix
 def prepare_dataset(df):
     df = df.drop(columns='pid')
@@ -55,15 +60,15 @@ df_subtaskt_1 = df_label[TEST1]
 y_train = df_subtaskt_1.to_numpy()
 
 # prediction matrix 
-output = np.empty((T_test.shape[0],10))
-
+output_sig = np.empty((T_test.shape[0],10))
+output_log = np.empty((T_test.shape[0],10))
 
 for i in range(y_train.shape[1]):
-    clf = SGDClassifier()
+    clf = SGDClassifier(loss='log')
 
     # # select 61 best feature columns
-    #selector = SelectKBest(k=61)
-    #X_new = selector.fit_transform(X_train, y_train[:,i])
+    # selector = SelectKBest(k=61)
+    # X_new = selector.fit_transform(X_train, y_train[:,i])
 
     # apply mask to get the selected columns from T
     # mask = selector.get_support()
@@ -74,13 +79,24 @@ for i in range(y_train.shape[1]):
     coef = coef.reshape((coef.shape[1],))
 
     # calculate sigmoid to get probabilities in range [0,1]
-    output[:,i] = 1/(1 + np.exp(-np.dot(T_test,coef)))
     
+    output_log[:,i] = np.dot(T_test,coef)
+    output_sig[:,i] = sigmoid(T_test, coef)
+
 
 pids = df_test['pid'].to_numpy()
 pids = pids.reshape((len(pids),1))
-output = np.hstack((pids, output))
-df = pd.DataFrame(output,columns=SOL1)
-df = df.astype({'pid':'int32'})
-df.to_csv('Data/pred_st1_Sven.csv', index=False, float_format='%.3f',header=True)
+
+output_log = np.hstack((pids, output_log))
+output_sig = np.hstack((pids, output_sig))
+
+df_log = pd.DataFrame(output_log,columns=SOL1)
+df_sig = pd.DataFrame(output_sig,columns=SOL1)
+
+df_log = df_log.astype({'pid':'int32'})
+df_sig = df_sig.astype({'pid':'int32'})
+
+df_sig.to_csv('Data/pred_st1_Sven_log_sig_2.csv', index=False, float_format='%.3f',header=True)
+df_log.to_csv('Data/pred_st1_Sven_log_2.csv', index=False, float_format='%.3f',header=True)
+
 
