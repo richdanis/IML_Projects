@@ -3,32 +3,30 @@ import pandas as pd
 from sklearn.linear_model import SGDRegressor
 import helper_functions as hf
 from sklearn.model_selection import cross_val_score
-from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import SelectKBest, f_regression
 
 fname = "Data/"
 train_df = pd.read_csv(fname + "train_features.csv")
 label_df = pd.read_csv(fname + "train_labels.csv")
 
-train_df = train_df[["Time","pid","RRate","ABPm","SpO2","Heartrate"]]
+#train_df, label_df = hf.remove_outliers(train_df, label_df)
 
-#X = hf.take_mean_features(train_df,["Time"])
-#X = hf.normalize(X)
+X = hf.prepare_dataset(train_df,["Time"])
+X = hf.normalize(X)
 
 columns = ["LABEL_RRate","LABEL_ABPm","LABEL_SpO2","LABEL_Heartrate"]
 
 y = label_df[columns].to_numpy()
 
-columns = ["RRate","ABPm","SpO2","Heartrate"]
-
 for i in range(4):
-    reg = SGDRegressor(max_iter=10000)
-    X = hf.take_mean_features(train_df[["Time","pid",columns[i]]],["Time"])
-    scores = cross_val_score(reg, X, y[:, i], cv=10)
-    print("Score: ",np.mean(scores))
+    reg = SGDRegressor()
+    X_new = SelectKBest(f_regression,k=50).fit_transform(X,y[:, i])
+    scores = cross_val_score(reg, X_new, y[:, i])
+    print("R2: ",np.mean(scores))
 
 '''
-Score:  0.37592154179722764
-Score:  0.5728583008037672
-Score:  0.2578932417363745
-Score:  0.596710935341267
+Score:  0.37890204825513146
+Score:  0.5710904208631888
+Score:  0.32837099160767363
+Score:  0.5988897768359733
 '''

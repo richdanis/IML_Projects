@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
+from sklearn.feature_selection import SelectKBest
 
 def remove_outliers(features,labels):
     for col in features.columns:
@@ -14,8 +15,8 @@ def remove_outliers(features,labels):
         upper = features[features[col] > q_hi].groupby(['pid'],as_index=False).max().sort_values(by=[col],ascending=False)
         lower = features[features[col] < q_low].groupby(['pid'],as_index=False).min().sort_values(by=[col])
 
-        upper = upper.head(10)
-        lower = lower.head(10)
+        upper = upper.head(100)
+        lower = lower.head(100)
 
         features = features[~features['pid'].isin(upper.pid)]
         features = features[~features['pid'].isin(lower.pid)]
@@ -47,15 +48,42 @@ def prepare_dataset(df, columns):
 def take_mean_features(df, columns):
 
     df = df.drop(columns=columns)
-    #df = df.fillna(df.mean())
+    df = df.fillna(df.mean())
 
     X = df.to_numpy()
     # exclude pids
     X = X[:, 1:]
 
     # iterative imputer
-    imp_mean = IterativeImputer(random_state=0)
-    X = imp_mean.fit_transform(X)
+    #imp_mean = IterativeImputer(random_state=0)
+    #X = imp_mean.fit_transform(X)
+
+    ds = np.empty((X.shape[0] // 12, X.shape[1]))
+    for i in range(ds.shape[0]):
+        mean = X[(i*12):((i+1)*12)].mean(axis=0)
+        ds[i] = mean
+
+    return ds
+
+def normalize(X):
+    mean = np.mean(X, axis=0)
+    std = np.std(X, axis=0)
+    mean = np.resize(mean, (1, mean.shape[0]))
+    std = np.resize(std, (1, std.shape[0]))
+    return (X - mean) / std
+
+def min_mean_max(df,columns):
+
+    df = df.drop(columns=columns)
+    df = df.fillna(df.mean())
+
+    X = df.to_numpy()
+    # exclude pids
+    X = X[:, 1:]
+
+    # iterative imputer
+    #imp_mean = IterativeImputer(random_state=0)
+    #X = imp_mean.fit_transform(X)
 
     ds = np.empty((X.shape[0]//12,X.shape[1]*3))
 
@@ -72,6 +100,3 @@ def take_mean_features(df, columns):
     mean = np.resize(mean,(1,mean.shape[0]*3))
     std = np.resize(std,(1,std.shape[0]*3))
     return (ds - mean) / std
-
-def normalize(df):
-    return (df - df.mean()) / df.std()
