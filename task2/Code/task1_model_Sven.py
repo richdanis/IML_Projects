@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import sklearn.metrics as metrics
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 
 # Mit LogisticRegression
@@ -34,8 +35,8 @@ def sigmoid(T, coef):
     
 # Normalizing and retun a np matrix
 def prepare_dataset(df):
-    df = df.drop(columns='pid')
-    X = df.to_numpy()
+    #df = df.drop(columns='pid')
+    X = df#.to_numpy()
     mean = np.mean(X,axis=0)
     mean = np.resize(mean,(1,mean.shape[0]))
     std = np.std(X,axis=0)
@@ -59,7 +60,8 @@ def min_mean_max(df):
         out[i,:X.shape[1]] = mean
         out[i,X.shape[1]:2*X.shape[1]] = min_
         out[i,2*X.shape[1]:] = max_
-
+            
+    out = prepare_dataset(out)
     return out
 
 # Import the data
@@ -86,8 +88,14 @@ y_train_2 = df_subtask_2.to_numpy()
 
 # prediction matrix 
 pred_1 = np.empty((T_test.shape[0],10))
+output = np.empty((T_test.shape[0],10))
 
 for i in range(y_train_1.shape[1]):
+    
+    g = GradientBoostingClassifier()
+    g.fit(X_train, y_train_1[:,i])
+    output[:,i] = g.predict_proba(T_test)[:,1]
+    
     clf = LogisticRegression(max_iter=1000)
     clf.fit(X_train, y_train_1[:,i])
     coef = clf.coef_
@@ -97,22 +105,28 @@ for i in range(y_train_1.shape[1]):
     pred_1[:,i] = sigmoid(T_test, coef)
     
 
-clf = LogisticRegression()
+clf = LogisticRegression(max_iter=1000)
 clf.fit(X_train, y_train_2)
 coef = clf.coef_
 coef = coef.reshape((coef.shape[1],))
 pred_2 = sigmoid(T_test,coef)
 
-pids = df_test['pid'].to_numpy()
+pids = df_test['pid'].to_numpy()[::12]
 
 pids = pids.reshape((len(pids),1))
 pred_2 = pred_2.reshape((len(pred_2),1))
+
 pred = np.concatenate((pids, pred_1, pred_2),axis=1)
+pred2 = np.concatenate((pids, output, pred_2),axis=1)
 
 df = pd.DataFrame(pred,columns=SOL)
 df = df.astype({'pid':'int32'}) 
 
+df2 = pd.DataFrame(pred2,columns=SOL)
+df2 = df.astype({'pid':'int32'}) 
+
 score = get_score(df_true, df,True,True)
+score = get_score(df_true, df2,True,True)
 #df.to_csv('Data/pred_st1_Sven.csv', index=False, float_format='%.3f',header=True)
 
 
