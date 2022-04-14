@@ -12,27 +12,6 @@ SOL1= ['pid','LABEL_BaseExcess', 'LABEL_Fibrinogen', 'LABEL_AST', 'LABEL_Alkalin
          'LABEL_Lactate', 'LABEL_TroponinI', 'LABEL_SaO2', 'LABEL_Bilirubin_direct', 'LABEL_EtCO2']
 
 
-def remove_outliers(features,labels):
-    for col in features.columns:
-        if col == 'pid' or col == 'Age' or col == 'Time':
-            continue
-        # RRate filter size 3000!
-        # ABPm 2761
-        # ABPd 1699
-        # Heartrate 2011
-        # ABPs 1699
-        q_low = features[col].quantile(0.01)
-        q_hi = features[col].quantile(0.99)
-
-        filter = features[(features[col] > q_hi) | (features[col] < q_low)]
-        if filter.shape[0] > 500:
-            continue
-        features = features[~features['pid'].isin(filter.pid)]
-        labels = labels[~labels['pid'].isin(filter.pid)]
-
-    return features, labels
-
-
 def sigmoid(T, coef):
     sol = 1/(1 + np.exp(-np.dot(T,coef)))
     return sol 
@@ -40,9 +19,12 @@ def sigmoid(T, coef):
 # Normalizing and retun a np matrix
 def prepare_dataset(df):
     df = df.drop(columns='pid')
-    df = (df - df.mean()) / df.std()
-
     X = df.to_numpy()
+    mean = np.mean(X,axis=0)
+    mean = np.resize(mean,(1,mean.shape[0]))
+    std = np.std(X,axis=0)
+    std = np.resize(std,(1,std.shape[0]))
+    X = (X-mean)/std
     return X
 
 # Import the data
@@ -60,8 +42,7 @@ df_subtaskt_1 = df_label[TEST1]
 y_train = df_subtaskt_1.to_numpy()
 
 # prediction matrix 
-output_sig = np.empty((T_test.shape[0],10))
-output_log = np.empty((T_test.shape[0],10))
+output = np.empty((T_test.shape[0],10))
 
 for i in range(y_train.shape[1]):
     clf = SGDClassifier(loss='log')
@@ -79,24 +60,15 @@ for i in range(y_train.shape[1]):
     coef = coef.reshape((coef.shape[1],))
 
     # calculate sigmoid to get probabilities in range [0,1]
-    
-    output_log[:,i] = np.dot(T_test,coef)
-    output_sig[:,i] = sigmoid(T_test, coef)
+    output[:,i] = sigmoid(T_test, coef)
 
 
 pids = df_test['pid'].to_numpy()
 pids = pids.reshape((len(pids),1))
 
-output_log = np.hstack((pids, output_log))
-output_sig = np.hstack((pids, output_sig))
-
-df_log = pd.DataFrame(output_log,columns=SOL1)
-df_sig = pd.DataFrame(output_sig,columns=SOL1)
-
-df_log = df_log.astype({'pid':'int32'})
+output = np.hstack((pids, output))
+df_sig = pd.DataFrame(output,columns=SOL1)
 df_sig = df_sig.astype({'pid':'int32'})
 
-df_sig.to_csv('Data/pred_st1_Sven_log_sig_2.csv', index=False, float_format='%.3f',header=True)
-df_log.to_csv('Data/pred_st1_Sven_log_2.csv', index=False, float_format='%.3f',header=True)
-
+df_sig.to_csv('Data/pred_st1_Sven.csv', index=False, float_format='%.3f',header=True)
 
