@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
 import sklearn.metrics as metrics
-from sklearn.linear_model import SGDClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.feature_selection import SelectKBest
 
+# Mit LogisticRegression
+# Score in ST1: 0.6862398643249649
+# Score in ST2: 0.5830721938699376
 
 # Defining the columns needed in Subtask1
 TEST1 = ['LABEL_BaseExcess', 'LABEL_Fibrinogen', 'LABEL_AST', 'LABEL_Alkalinephos', 'LABEL_Bilirubin_total',
@@ -12,7 +13,6 @@ TEST1 = ['LABEL_BaseExcess', 'LABEL_Fibrinogen', 'LABEL_AST', 'LABEL_Alkalinepho
 TEST2 = ['LABEL_Sepsis']
 SOL  =  ['pid', 'LABEL_BaseExcess', 'LABEL_Fibrinogen', 'LABEL_AST', 'LABEL_Alkalinephos', 'LABEL_Bilirubin_total',
          'LABEL_Lactate', 'LABEL_TroponinI', 'LABEL_SaO2', 'LABEL_Bilirubin_direct', 'LABEL_EtCO2','LABEL_Sepsis']
-
 
 
 #get score
@@ -43,21 +43,40 @@ def prepare_dataset(df):
     X = (X-mean)/std
     return X
 
+def min_mean_max(df):
+    df_int = df_train.drop(columns=['pid','Time']).copy()
+
+    X = df_int.to_numpy()
+    age = X[::12, 0]
+    age = age.reshape((len(age), 1))
+    X = X[:, 1:]
+
+    out = np.empty((X.shape[0]//12,X.shape[1]*3))
+    for i in range(out.shape[0]):
+        mean = X[(i*12):((i+1)*12)].mean(axis=0)
+        min_ = X[(i*12):((i+1)*12)].min(axis=0)
+        max_ = X[(i*12):((i+1)*12)].max(axis=0)
+        out[i,:X.shape[1]] = mean
+        out[i,X.shape[1]:2*X.shape[1]] = min_
+        out[i,2*X.shape[1]:] = max_
+
+    return out
+
 # Import the data
 fname = 'Data/'
-df_train = pd.read_csv(fname + 'train_features_train_set.csv')
-df_label = pd.read_csv(fname + 'train_labels_train_set.csv')
-df_test = pd.read_csv(fname + 'train_features_val_set.csv')
-df_true = pd.read_csv(fname + 'train_labels_val_set.csv')
+#df_train = pd.read_csv(fname + 'train_features_train_set.csv')
+#df_label = pd.read_csv(fname + 'train_labels_train_set.csv')
+#df_test = pd.read_csv(fname + 'train_features_val_set.csv')
+#df_true = pd.read_csv(fname + 'train_labels_val_set.csv')
 
-#df_train = pd.read_csv(fname + 'train_features_Sven_short.csv')
-#df_label = pd.read_csv(fname + 'train_labels_sorted.csv')
-#df_test = df_train.copy()
-#df_true = df_label.copy()
+df_train = pd.read_csv(fname + 'train_features_Sven_long.csv')
+df_label = pd.read_csv(fname + 'train_labels_sorted.csv')
+df_test = df_train.copy()
+df_true = df_label.copy()
 
 #df -> np matrix
-X_train = prepare_dataset(df_train)
-T_test = prepare_dataset(df_test)
+X_train = min_mean_max(df_train)
+T_test = min_mean_max(df_test)
 
 # Labels for Subtask1_1 -> np matrix
 df_subtask_1 = df_label[TEST1]
@@ -69,7 +88,7 @@ y_train_2 = df_subtask_2.to_numpy()
 pred_1 = np.empty((T_test.shape[0],10))
 
 for i in range(y_train_1.shape[1]):
-    clf = LogisticRegression()
+    clf = LogisticRegression(max_iter=1000)
     clf.fit(X_train, y_train_1[:,i])
     coef = clf.coef_
     coef = coef.reshape((coef.shape[1],))
