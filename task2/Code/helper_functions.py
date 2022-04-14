@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
 
 def remove_outliers(features,labels):
     for col in features.columns:
@@ -45,18 +47,31 @@ def prepare_dataset(df, columns):
 def take_mean_features(df, columns):
 
     df = df.drop(columns=columns)
-    df = df.fillna(df.mean())
+    #df = df.fillna(df.mean())
 
     X = df.to_numpy()
-
     # exclude pids
     X = X[:, 1:]
-    ds = np.empty((X.shape[0]//12,X.shape[1]))
+
+    # iterative imputer
+    imp_mean = IterativeImputer(random_state=0)
+    X = imp_mean.fit_transform(X)
+
+    ds = np.empty((X.shape[0]//12,X.shape[1]*3))
 
     for i in range(ds.shape[0]):
-        ds[i] = X[(i*12):((i+1)*12)].mean(axis=0)
+        mean = X[(i*12):((i+1)*12)].mean(axis=0)
+        min = X[(i*12):((i+1)*12)].min(axis=0)
+        max = X[(i*12):((i+1)*12)].max(axis=0)
+        ds[i,:X.shape[1]] = mean
+        ds[i,X.shape[1]:2*X.shape[1]] = min
+        ds[i,2*X.shape[1]:] = max
 
-    return ds
+    mean = np.mean(X,axis=0)
+    std = np.std(X,axis=0)
+    mean = np.resize(mean,(1,mean.shape[0]*3))
+    std = np.resize(std,(1,std.shape[0]*3))
+    return (ds - mean) / std
 
 def normalize(df):
     return (df - df.mean()) / df.std()
