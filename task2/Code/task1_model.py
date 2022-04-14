@@ -10,26 +10,21 @@ train_df = pd.read_csv(fname + "train_features.csv")
 label_df = pd.read_csv(fname + "train_labels.csv")
 test_df = pd.read_csv(fname + "test_features.csv")
 
-train_df, label_df = hf.remove_outliers(train_df, label_df)
+X = hf.min_mean_max(train_df)
+T = hf.min_mean_max(test_df)
 
-X = hf.take_mean_features(train_df,["Time"])
-T = hf.take_mean_features(test_df,["Time"])
-
-# PREPARING TRAINING LABELS
-label_df = label_df.sort_values(by=['pid'])
 label_df = label_df.drop(columns=['LABEL_Sepsis','LABEL_RRate','LABEL_ABPm','LABEL_SpO2','LABEL_Heartrate'])
 
 y = label_df.to_numpy()
 y = y[:,1:]
 
-columns = train_df.drop(columns=["Time","pid","Age"]).columns
 output = np.empty((T.shape[0],10))
 
 for i in range(y.shape[1]):
     clf = SGDClassifier()
 
     # select 61 best feature columns
-    selector = SelectKBest(k=1)
+    selector = SelectKBest(k=80)
     X_new = selector.fit_transform(X, y[:,i])
 
     # apply mask to get the selected columns from T

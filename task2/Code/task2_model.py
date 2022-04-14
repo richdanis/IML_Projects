@@ -11,8 +11,8 @@ test_df = pd.read_csv(fname + "test_features.csv")
 
 train_df, label_df = hf.remove_outliers(train_df, label_df)
 
-X = hf.prepare_dataset(train_df,["Time"])
-T = hf.prepare_dataset(test_df,["Time"])
+X = hf.min_mean_max(train_df)
+T = hf.min_mean_max(test_df)
 
 # PREPARING TRAINING LABELS
 
@@ -20,7 +20,7 @@ y = (label_df.loc[:,"LABEL_Sepsis"]).to_numpy()
 
 clf = SGDClassifier()
 
-selector = SelectKBest(k=13)
+selector = SelectKBest(k=20)
 X_new = selector.fit_transform(X, y)
 mask = selector.get_support()
 T_new = T[:,mask]

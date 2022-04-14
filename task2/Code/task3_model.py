@@ -2,14 +2,15 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import SGDRegressor
 import helper_functions as hf
+from sklearn.feature_selection import SelectKBest, f_regression
 
 fname = "Data/"
 train_df = pd.read_csv(fname + "train_features.csv")
 label_df = pd.read_csv(fname + "train_labels.csv")
 test_df = pd.read_csv(fname + "test_features.csv")
 
-X = hf.take_mean_features(train_df,["Time"])
-T = hf.take_mean_features(test_df,["Time"])
+X = hf.prepare_dataset(train_df)
+T = hf.prepare_dataset(test_df)
 X = hf.normalize(X)
 T = hf.normalize(T)
 
@@ -24,8 +25,12 @@ output = np.empty((pids.shape[0],4))
 
 for i in range(4):
     reg = SGDRegressor()
-    reg.fit(X,y[:,i])
-    output[:,i] = reg.predict(T)
+    selector = SelectKBest(f_regression, k=61)
+    X_new = selector.fit_transform(X, y[:, i])
+    mask = selector.get_support()
+    T_new = T[:, mask]
+    reg.fit(X_new,y[:,i])
+    output[:,i] = reg.predict(T_new)
 
 output = np.hstack((pids, output))
 df = pd.DataFrame(output,columns=["pid"] + columns)

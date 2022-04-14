@@ -25,44 +25,45 @@ def remove_outliers(features,labels):
 
     return features, labels
 
-def prepare_dataset(df, columns):
+def prepare_dataset(df):
 
-    df = df.drop(columns=columns)
     df = df.fillna(df.mean())
-    df = (df - df.mean()) / df.std()
 
     X = df.to_numpy()
 
-    # exclude pids
-    X = X[:, 1:]
     age = X[::12, 0]
     age = age.reshape((len(age), 1))
 
-    # exclude ages
-    X = X[:, 1:]
+    # exclude pids, age and time
+    X = X[:, 3:]
+
+    # in community , sh ip bgp community
+    # out filter outgoing
+    # eigene hat keine community value!
+
     X = X.reshape((len(age), 12 * X.shape[-1]))
     X = np.hstack((age, X))
 
     return X
 
-def take_mean_features(df, columns):
+def take_mean_features(df):
 
-    df = df.drop(columns=columns)
     df = df.fillna(df.mean())
 
     X = df.to_numpy()
-    # exclude pids
-    X = X[:, 1:]
 
     # iterative imputer
     #imp_mean = IterativeImputer(random_state=0)
     #X = imp_mean.fit_transform(X)
+    # show ip bgp regex
 
     ds = np.empty((X.shape[0] // 12, X.shape[1]))
     for i in range(ds.shape[0]):
         mean = X[(i*12):((i+1)*12)].mean(axis=0)
         ds[i] = mean
 
+    # exclude pids and time
+    X = X[:, 2:]
     return ds
 
 def normalize(X):
@@ -72,14 +73,15 @@ def normalize(X):
     std = np.resize(std, (1, std.shape[0]))
     return (X - mean) / std
 
-def min_mean_max(df,columns):
+def min_mean_max(df):
 
-    df = df.drop(columns=columns)
     df = df.fillna(df.mean())
 
     X = df.to_numpy()
-    # exclude pids
-    X = X[:, 1:]
+    # exclude pids age and time
+    age = X[::12, 0]
+    age = age.reshape((len(age), 1))
+    X = X[:, 3:]
 
     # iterative imputer
     #imp_mean = IterativeImputer(random_state=0)
@@ -99,4 +101,6 @@ def min_mean_max(df,columns):
     std = np.std(X,axis=0)
     mean = np.resize(mean,(1,mean.shape[0]*3))
     std = np.resize(std,(1,std.shape[0]*3))
-    return (ds - mean) / std
+    ds = np.hstack((age,ds))
+
+    return ds
