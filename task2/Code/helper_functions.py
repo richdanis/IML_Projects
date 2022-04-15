@@ -15,8 +15,8 @@ def remove_outliers(features,labels):
         upper = features[features[col] > q_hi].groupby(['pid'],as_index=False).max().sort_values(by=[col],ascending=False)
         lower = features[features[col] < q_low].groupby(['pid'],as_index=False).min().sort_values(by=[col])
 
-        upper = upper.head(100)
-        lower = lower.head(100)
+        upper = upper.head(20)
+        lower = lower.head(20)
 
         features = features[~features['pid'].isin(upper.pid)]
         features = features[~features['pid'].isin(lower.pid)]

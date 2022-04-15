@@ -9,7 +9,7 @@ fname = "Data/"
 train_df = pd.read_csv(fname + "train_features.csv")
 label_df = pd.read_csv(fname + "train_labels.csv")
 
-#train_df, label_df = hf.remove_outliers(train_df, label_df)
+train_df, label_df = hf.remove_outliers(train_df, label_df)
 
 X = hf.prepare_dataset(train_df)
 X = hf.normalize(X)
@@ -28,4 +28,5 @@ for i in range(4):
 print(np.mean(res))
 '''
 0.7455984141492595
+Remove outliers: 0.7532406664499538
 '''

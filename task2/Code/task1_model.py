@@ -11,6 +11,8 @@ train_df = pd.read_csv(fname + "train_features.csv")
 label_df = pd.read_csv(fname + "train_labels.csv")
 test_df = pd.read_csv(fname + "test_features.csv")
 
+train_df, label_df = hf.remove_outliers(train_df, label_df)
+
 X = hf.min_mean_max(train_df)
 T = hf.min_mean_max(test_df)
 
