@@ -4,6 +4,7 @@ import sklearn.metrics as metrics
 
 TEST1 = ['LABEL_BaseExcess', 'LABEL_Fibrinogen', 'LABEL_AST', 'LABEL_Alkalinephos', 'LABEL_Bilirubin_total',
          'LABEL_Lactate', 'LABEL_TroponinI', 'LABEL_SaO2', 'LABEL_Bilirubin_direct', 'LABEL_EtCO2']
+TEST2 = ['LABEL_Sepsis']
 
 #get score
 def get_score(df_true, df_submission, T1 = False, T2 = False):
@@ -13,7 +14,7 @@ def get_score(df_true, df_submission, T1 = False, T2 = False):
         task1 = np.mean([metrics.roc_auc_score(df_true[entry], df_submission[entry]) for entry in TEST1])
         print(f'Score in ST1: {task1}')
     if T2:
-        task2 = metrics.roc_auc_score(df_true['LABEL_Sepsis'], df_submission['LABEL_Sepsis'])
+        task2 = metrics.roc_auc_score(df_true[TEST2[0]], df_submission[TEST2[0]])
         print(f'Score in ST2: {task2}')
     return
 
@@ -32,7 +33,6 @@ def normalise(X):
     return X
 
 def min_mean_max(df):
-    print(df.shape)
     df = df.drop(columns=['pid'])
     if 'Time' in df.columns:
         df = df.drop(columns=['Time'])
@@ -53,7 +53,6 @@ def min_mean_max(df):
             
     out = normalise(out)
     out = np.hstack((age, out))
-    print(out.shape)
     return out
 
 def remove_outliers(features,labels):
