@@ -32,7 +32,11 @@ def normalise(X):
     return X
 
 def min_mean_max(df):
-    X = df.drop(columns=['pid']).to_numpy()
+    print(df.shape)
+    df = df.drop(columns=['pid'])
+    if 'Time' in df.columns:
+        df = df.drop(columns=['Time'])
+    X = df.to_numpy()
     age = X[::12, 0]
     age = age.reshape((len(age), 1))
     X = X[:, 1:]
@@ -49,4 +53,26 @@ def min_mean_max(df):
             
     out = normalise(out)
     out = np.hstack((age, out))
+    print(out.shape)
     return out
+
+def remove_outliers(features,labels):
+    for col in features.columns:
+        if col == 'pid' or col == 'Age' or col == 'Time':
+            continue
+
+        q_low = features[col].quantile(0.01)
+        q_hi = features[col].quantile(0.99)
+
+        upper = features[features[col] > q_hi].groupby(['pid'],as_index=False).max().sort_values(by=[col],ascending=False)
+        lower = features[features[col] < q_low].groupby(['pid'],as_index=False).min().sort_values(by=[col])
+
+        upper = upper.head(20)
+        lower = lower.head(20)
+
+        features = features[~features['pid'].isin(upper.pid)]
+        features = features[~features['pid'].isin(lower.pid)]
+        labels = labels[~labels['pid'].isin(upper.pid)]
+        labels = labels[~labels['pid'].isin(lower.pid)]
+
+    return features, labels
