@@ -4,9 +4,34 @@ from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
 from sklearn.feature_selection import SelectKBest
 
+def remove_sparse(features,labels):
+    filter = features.groupby(['pid'], as_index=False).count()
+    filter['sum'] = filter[filter.columns[1:]].sum(axis=1)
+    filter = filter[filter['sum'] < 70]
+    features = features[~features['pid'].isin(filter.pid)]
+    labels = labels[~labels['pid'].isin(filter.pid)]
+    return features, labels
+
+
+
+
 def remove_outliers(features,labels):
     for col in features.columns:
-        if col == 'pid' or col == 'Age' or col == 'Time':
+        if col == 'pid' or col == 'Time':
+            continue
+
+        if col == 'Age':
+            q_high = 90
+            upper = features[features[col] > q_high]
+            features = features[~features['pid'].isin(upper.pid)]
+            labels = labels[~labels['pid'].isin(upper.pid)]
+            continue
+
+        if col == 'Calcium':
+            q_low = 2.5
+            lower = features[features[col] < q_low]
+            features = features[~features['pid'].isin(lower.pid)]
+            labels = labels[~labels['pid'].isin(lower.pid)]
             continue
 
         q_low = features[col].quantile(0.01)
@@ -87,20 +112,18 @@ def min_mean_max(df):
     #imp_mean = IterativeImputer(random_state=0)
     #X = imp_mean.fit_transform(X)
 
-    ds = np.empty((X.shape[0]//12,X.shape[1]*3))
+    ds = np.empty((X.shape[0]//12,X.shape[1]*4))
 
     for i in range(ds.shape[0]):
         mean = X[(i*12):((i+1)*12)].mean(axis=0)
         min = X[(i*12):((i+1)*12)].min(axis=0)
         max = X[(i*12):((i+1)*12)].max(axis=0)
+        last = X[(i+1) * 12 - 1]
         ds[i,:X.shape[1]] = mean
         ds[i,X.shape[1]:2*X.shape[1]] = min
-        ds[i,2*X.shape[1]:] = max
+        ds[i,2*X.shape[1]:3*X.shape[1]] = max
+        ds[i,3*X.shape[1]:] = last
 
-    mean = np.mean(X,axis=0)
-    std = np.std(X,axis=0)
-    mean = np.resize(mean,(1,mean.shape[0]*3))
-    std = np.resize(std,(1,std.shape[0]*3))
     ds = np.hstack((age,ds))
 
     return ds
