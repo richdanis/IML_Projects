@@ -4,14 +4,17 @@ from sklearn.linear_model import SGDRegressor
 import helper_functions as hf
 from sklearn.model_selection import cross_val_score
 from sklearn.feature_selection import SelectKBest, f_regression
+from sklearn.ensemble import GradientBoostingRegressor
 
 fname = "Data/"
 train_df = pd.read_csv(fname + "train_features.csv")
 label_df = pd.read_csv(fname + "train_labels.csv")
 
+train_df, label_df = hf.remove_sparse(train_df, label_df)
 train_df, label_df = hf.remove_outliers(train_df, label_df)
 
-X = hf.prepare_dataset(train_df)
+train_df = train_df.fillna(train_df.mean())
+X = hf.min_mean_max(train_df)
 X = hf.normalize(X)
 
 columns = ["LABEL_RRate","LABEL_ABPm","LABEL_SpO2","LABEL_Heartrate"]
@@ -20,7 +23,8 @@ y = label_df[columns].to_numpy()
 res = np.empty((4,))
 
 for i in range(4):
-    reg = SGDRegressor()
+    #reg = SGDRegressor()
+    reg = GradientBoostingRegressor()
     X_new = SelectKBest(f_regression,k=61).fit_transform(X,y[:, i])
     scores = cross_val_score(reg, X_new, y[:, i])
     res[i] = 0.5 + 0.5 * np.mean(scores)

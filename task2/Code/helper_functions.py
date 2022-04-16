@@ -12,9 +12,6 @@ def remove_sparse(features,labels):
     labels = labels[~labels['pid'].isin(filter.pid)]
     return features, labels
 
-
-
-
 def remove_outliers(features,labels):
     for col in features.columns:
         if col == 'pid' or col == 'Time':
@@ -100,7 +97,8 @@ def normalize(X):
 
 def min_mean_max(df):
 
-    df = df.fillna(df.mean())
+    #df = df.fillna(df.mean())
+    #df = df.fillna(0)
 
     X = df.to_numpy()
     # exclude pids age and time

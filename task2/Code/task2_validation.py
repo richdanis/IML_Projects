@@ -12,9 +12,13 @@ train_df = pd.read_csv(fname + "train_features.csv")
 label_df = pd.read_csv(fname + "train_labels.csv")
 test_df = pd.read_csv(fname + "test_features.csv")
 
+train_df, label_df = hf.remove_sparse(train_df, label_df)
 train_df, label_df = hf.remove_outliers(train_df, label_df)
 
+
+train_df = train_df.fillna(0)
 X = hf.min_mean_max(train_df)
+#X = hf.normalize(X)
 
 # PREPARING TRAINING LABELS
 label_df = label_df.loc[:,"LABEL_Sepsis"]
@@ -32,4 +36,5 @@ print(np.mean(scores))
 '''
 0.72
 Remove outliers: 0.7
+0.739 with fill 0
 '''

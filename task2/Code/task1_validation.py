@@ -13,6 +13,7 @@ label_df = pd.read_csv(fname + "train_labels.csv")
 
 label_df = label_df.drop(columns=['LABEL_Sepsis','LABEL_RRate','LABEL_ABPm','LABEL_SpO2','LABEL_Heartrate'])
 
+#train_df, label_df = hf.remove_sparse(train_df, label_df)
 #train_df, label_df = hf.remove_outliers(train_df, label_df)
 
 X = hf.min_mean_max(train_df)
@@ -32,7 +33,7 @@ for i in range(y.shape[1]):
 
 print(np.mean(means))
 '''
-0.8015024040964818
+0.8015024040964818>
 '''
 
 
