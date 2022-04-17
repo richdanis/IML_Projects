@@ -16,6 +16,7 @@ label_df = label_df.drop(columns=['LABEL_Sepsis','LABEL_RRate','LABEL_ABPm','LAB
 #train_df, label_df = hf.remove_sparse(train_df, label_df)
 #train_df, label_df = hf.remove_outliers(train_df, label_df)
 
+train_df = train_df.fillna(0)
 X = hf.min_mean_max(train_df)
 
 y = label_df.to_numpy()

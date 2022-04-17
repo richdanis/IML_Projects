@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 
 sample = 'Data/sample.csv'
-pred_st1 = 'Data/pred_st1_Sven.csv'
-pred_st2 = 'Data/pred_st2_Sven.csv'
+pred_st1 = 'Data/pred_st1.csv'
+pred_st2 = 'Data/pred_st2.csv'
 pred_st3 = 'Data/pred_st3.csv'
 
 df_sample = pd.read_csv(sample)
@@ -26,4 +26,4 @@ df = pd.merge(df_sub,df_st3,on='pid')
 #assert df_sub.shape == df_sample.shape
 #assert df_sub.columns == df_sub.columns
 
-df.to_csv('Data/Submission_Sven.csv', index=False, float_format='%.3f')
+df.to_csv('Data/Submission_Richard.csv', index=False, float_format='%.3f')
