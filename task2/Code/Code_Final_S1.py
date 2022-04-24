@@ -16,7 +16,7 @@ TASK3 = ['LABEL_RRate', 'LABEL_ABPm', 'LABEL_SpO2', 'LABEL_Heartrate']
 # add age back, 137 features per patient
 
 def pre_pros(df):
-    
+
     df = df.drop(columns=['pid'])
     if 'Time' in df.columns:
         df = df.drop(columns=['Time'])
@@ -27,21 +27,20 @@ def pre_pros(df):
     age = age.reshape((len(age), 1))
     X = X[:, 1:]
 
-    ds = np.empty((X.shape[0]//12,X.shape[1]*5))
+    ds = np.empty((X.shape[0]//12,X.shape[1]*4))
 
     for i in range(ds.shape[0]):
-        first = X[i*12]
         mean = X[(i*12):((i+1)*12)].mean(axis=0)
         min = X[(i*12):((i+1)*12)].min(axis=0)
         max = X[(i*12):((i+1)*12)].max(axis=0)
         last = X[(i+1) * 12 - 1]
-        ds[i,:X.shape[1]] = first
-        ds[i,1*X.shape[1]:2*X.shape[1]] = mean
-        ds[i,2*X.shape[1]:3*X.shape[1]] = min
-        ds[i,3*X.shape[1]:4*X.shape[1]] = max
-        ds[i,4*X.shape[1]:] = last
-    
+        ds[i,:X.shape[1]] = mean
+        ds[i,1*X.shape[1]:2*X.shape[1]] = min
+        ds[i,2*X.shape[1]:3*X.shape[1]] = max
+        ds[i,3*X.shape[1]:] = last
+
     ds = np.hstack((age,ds))
+
     return ds
 
 fname = "Data/"
