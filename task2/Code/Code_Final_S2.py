@@ -3,12 +3,6 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import GradientBoostingRegressor
-import helper_functions_Sven as hf
-
-#Score in ST1: 0.8607528901743648
-#Score in ST2: 0.8127179099776952
-#Score in ST3: 0.7874488604012626
-#Score: 0.8203065535177743
 
 # label for the Subtasks 1-3
 TASK1 = ['LABEL_BaseExcess', 'LABEL_Fibrinogen', 'LABEL_AST', 'LABEL_Alkalinephos', 'LABEL_Bilirubin_total', 'LABEL_Lactate',
@@ -53,7 +47,7 @@ def min_mean_max_last(df):
         ds[i,2*X.shape[1]:3*X.shape[1]] = max
         ds[i,3*X.shape[1]:] = last
 
-    #ds = normalise(ds)
+    ds = normalise(ds)
     
     ds = np.hstack((age,ds))
     return ds
@@ -63,8 +57,6 @@ df_train = pd.read_csv(fname + "train_features.csv")
 df_train = df_train.fillna(df_train.mean())
 #df_train = df_train.fillna(0)
 df_label = pd.read_csv(fname + "train_labels.csv")
-#df_test = df_train.copy()
-#df_true = df_label
 df_test = pd.read_csv(fname + "test_features.csv")
 df_test = df_test.fillna(df_test.mean())
 #df_test = df_test.fillna(0)
@@ -120,5 +112,4 @@ final = np.hstack((pids,final))
 sub = pd.DataFrame(final,columns=['pid'] + TASK1 + TASK2 + TASK3)
 sub = sub.astype({'pid':'int32'})
 
-#hf.get_score(df_true, sub)
 sub.to_csv('Data/Sub_SvGi_mean.csv', index=False, float_format='%.3f', header=True)
