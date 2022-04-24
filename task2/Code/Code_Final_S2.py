@@ -15,56 +15,45 @@ TASK3 = ['LABEL_RRate', 'LABEL_ABPm', 'LABEL_SpO2', 'LABEL_Heartrate']
 # results in 34 * 4 = 136 features per patient
 # add age back, 137 features per patient
 
-def normalise(X):
-    mean = np.mean(X,axis=0)
-    mean = np.resize(mean,(1,mean.shape[0]))
-    std = np.std(X,axis=0)
-    std = np.resize(std,(1,std.shape[0]))
-    X = (X-mean)/std
-    return X
-
-def min_mean_max_last(df):
+def pre_pros(df):
     
     df = df.drop(columns=['pid'])
     if 'Time' in df.columns:
         df = df.drop(columns=['Time'])
 
     X = df.to_numpy()
-    # exclude pids age and time
+    
     age = X[::12, 0]
     age = age.reshape((len(age), 1))
     X = X[:, 1:]
 
-    ds = np.empty((X.shape[0]//12,X.shape[1]*4))
+    ds = np.empty((X.shape[0]//12,X.shape[1]*5))
 
     for i in range(ds.shape[0]):
+        first = X[i*12]
         mean = X[(i*12):((i+1)*12)].mean(axis=0)
         min = X[(i*12):((i+1)*12)].min(axis=0)
         max = X[(i*12):((i+1)*12)].max(axis=0)
         last = X[(i+1) * 12 - 1]
-        ds[i,:X.shape[1]] = mean
-        ds[i,X.shape[1]:2*X.shape[1]] = min
-        ds[i,2*X.shape[1]:3*X.shape[1]] = max
-        ds[i,3*X.shape[1]:] = last
-
-    ds = normalise(ds)
+        ds[i,:X.shape[1]] = first
+        ds[i,1*X.shape[1]:2*X.shape[1]] = mean
+        ds[i,2*X.shape[1]:3*X.shape[1]] = min
+        ds[i,3*X.shape[1]:4*X.shape[1]] = max
+        ds[i,4*X.shape[1]:] = last
     
     ds = np.hstack((age,ds))
     return ds
 
 fname = "Data/"
 df_train = pd.read_csv(fname + "train_features.csv")
-df_train = df_train.fillna(df_train.mean())
-#df_train = df_train.fillna(0)
+df_train = df_train.fillna(0)
 df_label = pd.read_csv(fname + "train_labels.csv")
 df_test = pd.read_csv(fname + "test_features.csv")
-df_test = df_test.fillna(df_test.mean())
-#df_test = df_test.fillna(0)
+df_test = df_test.fillna(0)
 
 # Preprocessing the data
-# mmml + norm
-X = min_mean_max_last(df_train)
-T = min_mean_max_last(df_test)
+X = pre_pros(df_train)
+T = pre_pros(df_test)
 
 #Setting the y to the Subtasks
 y1 = df_label[TASK1].to_numpy()
@@ -75,7 +64,7 @@ y3 = df_label[TASK3].to_numpy()
 GBC = GradientBoostingClassifier(random_state=12)
 GBR = GradientBoostingRegressor(random_state=9)
 
-# TASK 1
+# Subtask 1
 print(f'Subtask 1')
 pred_1 = np.empty((T.shape[0],len(TASK1)))
 
@@ -84,7 +73,7 @@ for i in range(y1.shape[1]):
     GBC.fit(X, y1[:, i])
     pred_1[:, i] = GBC.predict_proba(T)[:, 1]
 
-# TASK 2
+# Subtask 2
 print(f'Subtask 2: {TASK2[0]}')
 pred_2 = np.empty((T.shape[0],len(TASK2)))
 
@@ -92,7 +81,7 @@ GBC.fit(X,y2)
 pred_2 = GBC.predict_proba(T)[:,1]
 pred_2 = pred_2.reshape((pred_2.shape[0],1))
 
-# TASK 3
+# Subtask 3
 print(f'Subtask 3')
 pred_3 = np.empty((T.shape[0],len(TASK3)))
 
@@ -101,7 +90,8 @@ for i in range(y3.shape[1]):
     GBR.fit(X, y3[:, i])
     pred_3[:, i] = GBR.predict(T)
     
-# Merging the predictions of the subtask and saving to csv
+# Merging the predictions of the subtasks and saving to csv-file
+
 pids = df_test["pid"].to_numpy()[::12]
 pids = pids.reshape((len(pids),1))
 
@@ -112,4 +102,5 @@ final = np.hstack((pids,final))
 sub = pd.DataFrame(final,columns=['pid'] + TASK1 + TASK2 + TASK3)
 sub = sub.astype({'pid':'int32'})
 
-sub.to_csv('Data/Sub_SvGi_mean.csv', index=False, float_format='%.3f', header=True)
+sub.to_csv('Data/Sub_SvGi_.csv', index=False, float_format='%.3f', header=True)
+
