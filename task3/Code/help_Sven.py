@@ -1,7 +1,7 @@
 #imports
 import numpy as np
 from numpy import random as ran
-import torchvision.transforms as transforms
+import torchvision.transforms as T
 from PIL import Image
 
 def swap(train):
@@ -22,7 +22,12 @@ def get_ima(train,i):
     B_im = Image.open(food + B + '.jpg').convert('RGB')
     C_im = Image.open(food + C + '.jpg').convert('RGB')
     
-    to_tensor = transforms.ToTensor()
+    resize = T.Resize(size = (250, 350))
+    A_im = resize(A_im)
+    B_im = resize(B_im)
+    C_im = resize(C_im)
+        
+    to_tensor = T.ToTensor()
     A_ten = to_tensor(A_im)
     B_ten = to_tensor(B_im)
     C_ten = to_tensor(C_im)
