@@ -10,7 +10,8 @@ def ImageToTensor(img):
     image = Image.open(filename)
     to_tensor = transforms.ToTensor()
     tensor = to_tensor(image)
-    tensor = tensor.resize((3,))
+    resize = transforms.Resize((250,350))
+    tensor = resize(tensor)
 
     return tensor
 
@@ -26,11 +27,10 @@ filename = '../Data/food/' + str(train[0][0]) + '.jpg'
 img = Image.open(filename)
 to_tensor = transforms.ToTensor()
 tensor = to_tensor(img)
+resize = transforms.Resize((250, 350))
+tensor = resize(tensor)
 
-filename = '../Data/food/' + str(train[0][1]) + '.jpg'
-img = Image.open(filename)
-to_tensor = transforms.ToTensor()
-tensor = to_tensor(img)
+test = ImageToTensor(train[0][0])
 print("hehe")
 
 
