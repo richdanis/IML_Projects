@@ -4,7 +4,7 @@ from numpy import random as ran
 #import pytorch as torch
 
 #data
-fname = 'Data/'
+fname = '../Data/'
 food = fname + 'food/'
 train = np.loadtxt(fname + "train_triplets.txt", dtype=int)
 #test = np.loadtxt(fname + "test_triplets.txt", dtype=int)
