@@ -28,5 +28,5 @@ for i in k:
         min_a3 = C
 
 
-print(min_a2)
-print(min_a3)
+print(min_a2) #242
+print(min_a3) #354
