@@ -17,7 +17,8 @@ def swap(train):
 
 def get_ima(train,i):
     A,B,C = train[i,:]
-    food = '../Data/food/'
+    
+    food = 'Data/food/'
     A_im = Image.open(food + A + '.jpg').convert('RGB')
     B_im = Image.open(food + B + '.jpg').convert('RGB')
     C_im = Image.open(food + C + '.jpg').convert('RGB')
