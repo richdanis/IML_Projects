@@ -23,9 +23,9 @@ def get_batch(idx, train):
 
     for i in range(64):
 
-        batch[i][0] = ImageToTensor(train[idx*64+i][0])
-        batch[i][1] = ImageToTensor(train[idx*64+i][1])
-        batch[i][2] = ImageToTensor(train[idx*64+i][2])
+        batch[i][0] = image_to_tensor(train[idx*64+i][0])
+        batch[i][1] = image_to_tensor(train[idx*64+i][1])
+        batch[i][2] = image_to_tensor(train[idx*64+i][2])
 
     return batch
 
