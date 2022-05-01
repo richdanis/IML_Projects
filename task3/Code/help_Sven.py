@@ -5,7 +5,7 @@ import torchvision.transforms as T
 from PIL import Image
 
 def swap(train):
-    y = ran.choice(a=[0, 1], size= (train.shape[0],1))
+    y = ran.choice(a=[0, 1], size=(train.shape[0],1))
 
     for i in range(train.shape[0]):
         if y[i] == 0:
