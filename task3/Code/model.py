@@ -2,7 +2,7 @@ import torchvision.models as models
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from Richard import ImageToTensor
+from Richard import image_to_tensor
 
 
 vgg16 = models.vgg16(pretrained=True)
@@ -33,9 +33,9 @@ class Net(nn.Module):
 
         return self.classifier(a)
 
-a = ImageToTensor('09896')
-b = ImageToTensor('09640')
-c = ImageToTensor('09177')
+a = image_to_tensor('09896')
+b = image_to_tensor('09640')
+c = image_to_tensor('09177')
 
 test = Net()
 res = test.forward((a,b,c))
