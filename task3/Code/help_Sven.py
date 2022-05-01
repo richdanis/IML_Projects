@@ -12,16 +12,21 @@ def swap(train):
             tmp = train[i,1]
             train[i,1] = train[i,2]
             train[i,2] = tmp
+            
+    train = np.hstack((train,y))
+    
+    return train
 
-    return y, train
 
 def get_ima(train,i):
-    A,B,C = train[i,:]
+    A = train[i,0]
+    B = train[i,1]
+    C = train[i,2]
     
-    food = '../Data/food/'
-    A_im = Image.open(food + A + '.jpg').convert('RGB')
-    B_im = Image.open(food + B + '.jpg').convert('RGB')
-    C_im = Image.open(food + C + '.jpg').convert('RGB')
+    filename = '../Data/food/'
+    A_im = Image.open(filename + A + '.jpg').convert('RGB')
+    B_im = Image.open(filename + B + '.jpg').convert('RGB')
+    C_im = Image.open(filename + C + '.jpg').convert('RGB')
     
     resize = T.Resize(size = (250, 350))
     A_im = resize(A_im)
