@@ -5,7 +5,7 @@ from torchvision import transforms
 from PIL import Image
 
 
-def ImageToTensor(img):
+def image_to_tensor(img):
 
     filename = '../Data/food/' + str(img) + '.jpg'
     image = Image.open(filename)
@@ -15,6 +15,22 @@ def ImageToTensor(img):
     tensor = resize(tensor)
 
     return tensor
+
+
+def get_batch(idx, train):
+
+    batch = torch.empty((64,3,250,350))
+
+    for i in range(64):
+
+        batch[i][0] = image_to_tensor(train[idx*64+i][0])
+        batch[i][1] = image_to_tensor(train[idx*64+i][1])
+        batch[i][2] = image_to_tensor(train[idx*64+i][2])
+
+    return batch
+
+
+
 
 
 #data
