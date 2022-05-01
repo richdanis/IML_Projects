@@ -13,33 +13,34 @@ def image_to_tensor(img):
     tensor = to_tensor(image)
     resize = transforms.Resize((250,350))
     tensor = resize(tensor)
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225])
+    tensor = normalize(tensor)
 
     return tensor
 
 
-def get_batch(idx, train):
+def get_batch(train,begin):
 
-    batch = torch.empty((64,3,250,350))
+    batch = torch.empty((train.shape[0],3,3,250,350))
 
-    for i in range(64):
+    for i in range(train.shape[0]):
 
-        batch[i][0] = image_to_tensor(train[idx*64+i][0])
-        batch[i][1] = image_to_tensor(train[idx*64+i][1])
-        batch[i][2] = image_to_tensor(train[idx*64+i][2])
+        batch[i][0] = image_to_tensor(train[begin+i][0])
+        batch[i][1] = image_to_tensor(train[begin+i][1])
+        batch[i][2] = image_to_tensor(train[begin+i][2])
 
     return batch
 
-
-
-
-
 #data
-#fname = '../Data/'
-#food = fname + 'food/'
-#train = np.loadtxt(fname + "train_triplets.txt", dtype=str)
+fname = '../Data/'
+food = fname + 'food/'
+train = np.loadtxt(fname + "train_triplets.txt", dtype=str)
 #test = np.loadtxt(fname + "test_triplets.txt", dtype=int)
 #print("hey")
 
+batch = get_batch(train[:64],0)
+print("hey")
 #filename = '../Data/food/' + str(train[0][0]) + '.jpg'
 #img = Image.open(filename)
 #to_tensor = transforms.ToTensor()
