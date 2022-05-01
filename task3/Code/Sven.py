@@ -5,7 +5,7 @@ import help_Sven as h
 import torch
 
 #data
-fname = 'Data/'
+fname = '../Data/'
 food = fname + 'food/'
 train = np.loadtxt(fname + "train_triplets.txt", dtype=str)
 #test = np.loadtxt(fname + "test_triplets.txt", dtype=int)
