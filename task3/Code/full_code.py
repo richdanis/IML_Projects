@@ -1,5 +1,4 @@
-# %%
-# Imports
+#Imports
 import numpy as np
 from numpy import random as ran
 
@@ -9,13 +8,17 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 from torchvision import transforms
 import torchvision.models as models
-import torchmetrics as metrics
+from torch.utils.data import DataLoader, Dataset
+from torch._C import dtype
+
+from torchmetrics import Accuracy
+
 import time
+
 from PIL import Image
 
 
 def swap(train):
-
     y = ran.choice(a=[0, 1], size=(train.shape[0], 1))
 
     for i in range(train.shape[0]):
@@ -28,68 +31,53 @@ def swap(train):
 
     return train
 
+class ImgDataset(Dataset):
 
-def get_ima(train, i):
+    def __init__(self, data):
+        self.data = data
+        self.transform = T.Compose([
+            T.ToTensor(),
+            T.Resize((250, 350)),
+            T.Normalize(mean=[0.485, 0.456, 0.406],
+                        std=[0.229, 0.224, 0.225]),
 
-    A, B, C = train[i, :]
+        ])
 
-    filename = '../Data/food/'
-    A_im = Image.open(filename + A + '.jpg').convert('RGB')
-    B_im = Image.open(filename + B + '.jpg').convert('RGB')
-    C_im = Image.open(filename + C + '.jpg').convert('RGB')
+    def __len__(self):
+        return self.data.shape[0]
 
-    resize = T.Resize(size=(250, 350))
-    A_im = resize(A_im)
-    B_im = resize(B_im)
-    C_im = resize(C_im)
+    def __getitem__(self, idx):
+        filename = 'Data/food/' + str(self.data[idx][0]) + '.jpg'
+        im1 = Image.open(filename)
+        im1 = self.transform(im1)
+        filename = 'Data/food/' + str(self.data[idx][1]) + '.jpg'
+        im2 = Image.open(filename)
+        im2 = self.transform(im2)
+        filename = 'Data/food/' + str(self.data[idx][2]) + '.jpg'
+        im3 = Image.open(filename)
+        im3 = self.transform(im3)
 
-    to_tensor = T.ToTensor()
-    A_ten = to_tensor(A_im)
-    B_ten = to_tensor(B_im)
-    C_ten = to_tensor(C_im)
+        label = torch.tensor(float(self.data[idx][3]))
+        label = label.float()
 
-    return A_ten, B_ten, C_ten
+        im1 = torch.unsqueeze(im1, 0)
+        im2 = torch.unsqueeze(im2, 0)
+        im3 = torch.unsqueeze(im3, 0)
 
-
-def image_to_tensor(img):
-
-    filename = '../Data/food/' + str(img) + '.jpg'
-    image = Image.open(filename)
-    to_tensor = transforms.ToTensor()
-    tensor = to_tensor(image)
-    resize = transforms.Resize((250, 350))
-    tensor = resize(tensor)
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
-    tensor = normalize(tensor)
-
-    return tensor
+        return torch.cat((im1,im2,im3)),label
 
 
-def get_batch(idx, train):
-    batch = torch.empty((64, 3, 3, 250, 350))
-
-    for i in range(64):
-        batch[i][0] = image_to_tensor(train[idx * 64 + i][0])
-        batch[i][1] = image_to_tensor(train[idx * 64 + i][1])
-        batch[i][2] = image_to_tensor(train[idx * 64 + i][2])
-
-    return batch
-
-
-# %%
 vgg16 = models.vgg16(pretrained=True)
-
 
 class Net(nn.Module):
 
     def __init__(self):
         super(Net, self).__init__()
         self.features = vgg16.features
-        self.avgpool = vgg16.avgpool
+        self.avgpool = vgg16.avgpool  # output 512x7x7 = 25'088 output nodes
         self.classifier = vgg16.classifier
+        self.classifier[0] = nn.Linear(25088 * 3, 4096, bias=True)
         self.classifier[6] = nn.Linear(4096, 1, bias=True)
-        self.classifier[0] = nn.Linear(75264, 4096, bias=True)
         for param in self.features.parameters():
             param.requires_grad = False
         for param in self.avgpool.parameters():
@@ -98,101 +86,74 @@ class Net(nn.Module):
     # x represents our data
     def forward(self, x):
 
-        a = self.features(x[0])
-        a = self.avgpool(a)
-        b = self.features(x[1])
-        b = self.avgpool(b)
-        c = self.features(x[2])
-        c = self.avgpool(c)
+        with torch.no_grad():
+            x = torch.reshape(x, (x.shape[0] * 3,) + x[0][0].shape)
 
-        a = torch.cat((a, b, c))
-        a = torch.flatten(a)
-        a = self.classifier(a)
-        a = torch.sigmoid(a)
+            x = self.features(x)
+            x = self.avgpool(x)
 
-        return a
+            x = torch.reshape(x, (x.shape[0] // 3, 3) + x[0].shape)
+            x = torch.flatten(x, start_dim=1)
 
-    def forwardBatch(self, x):
+        x = self.classifier(x)
 
-        res = torch.empty((x.shape[0],))
-
-        for i in range(x.shape[0]):
-
-            a = self.features(x[i][0])
-            a = self.avgpool(a)
-            b = self.features(x[i][1])
-            b = self.avgpool(b)
-            c = self.features(x[i][2])
-            c = self.avgpool(c)
-            a = torch.cat((a, b, c))
-            a = torch.flatten(a)
-            a = self.classifier(a)
-            a = torch.sigmoid(a)
-            res[i] = a
-
-        return res
+        return x
 
 
-model = Net()#.cuda()
-loss_fn = torch.nn.BCELoss()
+model = Net().cuda()
+
+loss_fn = torch.nn.BCEWithLogitsLoss()
 
 # define utility functions to compute classification accuracy and
 # perform evaluation / testing
 
-
-#def accuracy(pred: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
-    # computes the classification accuracy
-    #correct_label = torch.argmax(pred, axis=-1) == torch.argmax(label, axis=-1)
-    #assert correct_label.shape == (pred.shape[0],)
-    #acc = torch.mean(correct_label.float())
-    #assert 0. <= acc <= 1.
-    #return acc
-
 def accuracy(pred, label):
-    pred = torch.round(pred)
-    correct = 0
-    for i in range(pred.shape[0]):
-        if pred[i] == label[i]:
-            correct += 1
-    return correct / pred.shape[0]
+    label = label.int().cuda()
+    accur = Accuracy().cuda()
+    acc = accur(pred, label)
+    return acc
 
-
-def evaluate(model: torch.nn.Module, test) -> torch.Tensor:
+def evaluate(model: torch.nn.Module, testloader) -> torch.Tensor:
     # goes through the test dataset and computes the test accuracy
     model.eval()  # bring the model into eval mode
     with torch.no_grad():
         acc_cum = 0.0
         num_eval_samples = 0
-        X = test[:, :3]
-        y = test[:, 3:]
-        for i in range(test.shape[0] // 64 + 1):
-            x_batch_test = get_batch(i, X[i * 64:(i + 1) * 64])
-            y_label_test = np.array(y[i * 64:(i + 1) * 64],dtype=float)
-            y_label_test = torch.from_numpy(y_label_test)
-            #x_batch_test, y_label_test = x_batch_test.cuda(), y_label_test.cuda()
-            x_batch_test, y_label_test = x_batch_test, y_label_test
+
+        for x_batch_test, y_label_test in testloader:
+            y_label_test = torch.reshape(y_label_test,(y_label_test.shape[0],1))
+            x_batch_test, y_label_test = x_batch_test.cuda(), y_label_test.cuda()
             batch_size = x_batch_test.shape[0]
             num_eval_samples += batch_size
             acc_cum += accuracy(model(x_batch_test), y_label_test) * batch_size
+
         avg_acc = acc_cum / num_eval_samples
         avg_acc = torch.tensor(avg_acc)
         assert 0 <= avg_acc <= 1
         return avg_acc
 
 
-# %%
 # Setup the optimizer (adaptive learning rate method)
 optim = torch.optim.Adam(model.parameters(), lr=1e-3)
 
-fname = '../Data/'
+fname = 'Data/'
 food = fname + 'food/'
 train = np.loadtxt(fname + "train_triplets.txt", dtype=str)
 train = swap(train)
 
 np.random.shuffle(train)
 
-val = train[int(0.8*train.shape[0]):]
-train = train[:int(0.8*train.shape[0])]
+val = train[int(0.8 * train.shape[0]):]
+train = train[:int(0.8 * train.shape[0])]
+
+train_dataset = ImgDataset(train)
+val_dataset = ImgDataset(val)
+
+trainloader = DataLoader(train_dataset, batch_size=64,
+                         shuffle=True, num_workers=0)
+
+valloader = DataLoader(val_dataset, batch_size=64,
+                       shuffle=True, num_workers=0)
 
 for epoch in range(50):
     # reset statistics trackers
@@ -200,27 +161,25 @@ for epoch in range(50):
     acc_cum = 0.0
     num_samples_epoch = 0
     t = time.time()
-    np.random.shuffle(train)
-    X = train[:, :3]
-    y = train[:, 3:]
 
     # Go once through the training dataset (-> epoch)
-    for i in range(train.shape[0] // 64 + 1):
-        x_batch = get_batch(i, X[i * 64:(i + 1) * 64])
-        y_batch = np.array(y[i * 64:(i + 1) * 64],dtype=float)
-        y_batch = torch.from_numpy(y_batch)
+    for x_batch, y_batch in trainloader:
 
         # zero grads and put model into train mode
         optim.zero_grad()
         model.train()
 
+        y_batch = torch.reshape(y_batch, (y_batch.shape[0], 1))
+
         # move data to GPU
-        #x_batch, y_batch = x_batch.cuda(), y_batch.cuda()
-        x_batch, y_batch = x_batch, y_batch
+        x_batch, y_batch = x_batch.cuda(), y_batch.cuda()
 
         # forward pass
-        pred = model.forwardBatch(x_batch)
+
+        # pred = model.forwardBatch(x_batch)
+        pred = model(x_batch)
         loss = loss_fn(pred, y_batch)
+        # loss = my_loss()
 
         # backward pass and gradient step
         loss.backward()
@@ -232,10 +191,11 @@ for epoch in range(50):
         train_loss_cum += loss * num_samples_batch
         acc_cum += accuracy(pred, y_batch) * num_samples_batch
 
+
     # average the accumulated statistics
     avg_train_loss = train_loss_cum / num_samples_epoch
     avg_acc = acc_cum / num_samples_epoch
-    test_acc = evaluate(model, val)
+    test_acc = evaluate(model, valloader)
     epoch_duration = time.time() - t
 
     # print some infos
@@ -251,4 +211,3 @@ for epoch in range(50):
                     'optimizer_state_dict': optim.state_dict()},
                    save_path)
         print(f'Saved model checkpoint to {save_path}')
-

@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="c49770c1-43d5-4dcb-88df-1500927d7ad2" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/task3/Code/Richard.py" beforeDir="false" afterPath="$PROJECT_DIR$/task3/Code/Richard.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/task3/Code/full_code.py" beforeDir="false" afterPath="$PROJECT_DIR$/task3/Code/full_code.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -124,6 +124,8 @@
       <workItem from="1651412079682" duration="3962000" />
       <workItem from="1651430512051" duration="11000" />
       <workItem from="1651479234524" duration="11783000" />
+      <workItem from="1651515734355" duration="1711000" />
+      <workItem from="1651518908811" duration="1333000" />
     </task>
     <servers />
   </component>
@@ -158,16 +160,6 @@
           <url>file://$PROJECT_DIR$/task3/Code/Richard.py</url>
           <line>34</line>
           <option name="timeStamp" value="9" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/task3/Code/full_code.py</url>
-          <line>221</line>
-          <option name="timeStamp" value="11" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/task3/Code/full_code.py</url>
-          <line>132</line>
-          <option name="timeStamp" value="12" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/task3/Code/Richard.py</url>
