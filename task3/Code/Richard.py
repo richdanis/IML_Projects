@@ -69,35 +69,44 @@ class ImgDataset(Dataset):
         return torch.cat((im1,im2,im3)),label
 
 
+def turn_to_tensorset(data):
+
+    transform = T.Compose([
+        T.ToTensor(),
+        T.Resize((250, 350)),
+        T.Normalize(mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]),
+
+    ])
+
+    for i in range(10000):
+
+        name = str(i)
+        if i < 10:
+            name = '0000' + name
+        elif i < 100:
+            name = '000' + name
+        elif i < 1000:
+            name = '00' + name
+        else:
+            name = '0' + name
+        filename = '../Data/food/' + name + '.jpg'
+        im1 = Image.open(filename)
+        im1 = transform(im1)
+
+        im1 = torch.unsqueeze(im1, 0)
+
+        torch.save(im1,'../Data/tensorset/' + name + '.pt')
 
 #data
 fname = '../Data/'
 food = fname + 'food/'
 train = np.loadtxt(fname + "train_triplets.txt", dtype=str)
-#test = np.loadtxt(fname + "test_triplets.txt", dtype=int)
-#print("hey")
 
-train = hs.swap(train)
-dataset = ImgDataset(train)
+turn_to_tensorset(train)
 
-dataloader = DataLoader(dataset, batch_size=64,
-                        shuffle=True, num_workers=0)
 
-for x_batch,y_batch in dataloader:
-    print(x_batch.shape[0])
-    print(y_batch.shape[0])
 
-#batch = get_batch(train[:64],0)
-#print("hey")
-#filename = '../Data/food/' + str(train[0][0]) + '.jpg'
-#img = Image.open(filename)
-#to_tensor = transforms.ToTensor()
-#tensor = to_tensor(img)
-#resize = transforms.Resize((250, 350))
-#tensor = resize(tensor)
-
-#test = ImageToTensor(train[0][0])
-#print("hehe")
 
 
 

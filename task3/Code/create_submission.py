@@ -16,10 +16,10 @@ import time
 
 from PIL import Image
 
-test = np.loadtxt('../Data/test_triplets.txt',dtype=str)
+test = np.loadtxt('Data/test_triplets.txt',dtype=str)
 
-vgg16 = models.vgg16(pretrained=True)
-
+#vgg16 = models.vgg16(pretrained=True)
+vgg16 = torch.load('vgg16.pth')
 class Net(nn.Module):
 
     def __init__(self):
@@ -50,9 +50,7 @@ class Net(nn.Module):
 
         return x
 
-model = Net()
-model.load_state_dict(torch.load('../Data/model_epoch_30.pt',map_location=torch.device('cpu')))
-
+model = torch.load('vgg_epoch_40.pth').cuda()
 model.eval()
 
 transform = T.Compose([
@@ -66,13 +64,13 @@ output = np.empty((test.shape[0],),dtype=int)
 
 for row in range(test.shape[0]):
     
-    filename = '../Data/food/' + str(test[row][0]) + '.jpg'
+    filename = 'Data/food/' + str(test[row][0]) + '.jpg'
     im1 = Image.open(filename)
     im1 = transform(im1)
-    filename = '../Data/food/' + str(test[row][1]) + '.jpg'
+    filename = 'Data/food/' + str(test[row][1]) + '.jpg'
     im2 = Image.open(filename)
     im2 = transform(im2)
-    filename = '../Data/food/' + str(test[row][2]) + '.jpg'
+    filename = 'Data/food/' + str(test[row][2]) + '.jpg'
     im3 = Image.open(filename)
     im3 = transform(im3)
 
@@ -81,13 +79,13 @@ for row in range(test.shape[0]):
     im3 = torch.unsqueeze(im3, 0)
 
     x = torch.cat((im1, im2, im3))
-
+    x = torch.unsqueeze(x,0).cuda()
     res = model(x)
     res = torch.sigmoid(res)
     res = torch.round(res)
 
     output[row] = res
 
-np.savetxt('../Data/first_submission.txt',output)
+np.savetxt('first_submission.txt',output,fmt='%i')
 
 
