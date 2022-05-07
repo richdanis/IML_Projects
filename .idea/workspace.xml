@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="c49770c1-43d5-4dcb-88df-1500927d7ad2" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/task3/Code/Richard.py" beforeDir="false" afterPath="$PROJECT_DIR$/task3/Code/Richard.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/task3/Code/create_submission.py" beforeDir="false" afterPath="$PROJECT_DIR$/task3/Code/create_submission.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -126,10 +124,10 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.Richard" />
-      <item itemvalue="Python.submission" />
-      <item itemvalue="Python.fullCode" />
       <item itemvalue="Python.Model" />
+      <item itemvalue="Python.Richard" />
+      <item itemvalue="Python.fullCode" />
+      <item itemvalue="Python.submission" />
     </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -154,6 +152,8 @@
       <workItem from="1651576563907" duration="2371000" />
       <workItem from="1651582840912" duration="142000" />
       <workItem from="1651583282421" duration="8031000" />
+      <workItem from="1651909357286" duration="63000" />
+      <workItem from="1651935197652" duration="691000" />
     </task>
     <servers />
   </component>
