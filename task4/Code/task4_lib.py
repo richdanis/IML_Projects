@@ -19,33 +19,6 @@ class TrainDataset(Dataset):
         return feature
 
 
-class MolecularNet(nn.Module):
-
-    def __init__(self):
-        super().__init__()
-
-        self.encoder = nn.Sequential(
-            nn.Linear(1000, 900),
-            nn.LeakyReLU(),
-            nn.Linear(900, 500),
-            nn.LeakyReLU(),
-            nn.Linear(500, 100),
-        )
-
-        self.regressor = nn.Sequential(
-            nn.Linear(100, 20),
-            nn.LeakyReLU(),
-            nn.Linear(20, 1)
-        )
-
-    def forward(self, x):
-
-        x = self.encoder(x)
-        x = self.regressor(x)
-
-        return x
-
-
 def get_loaders(dataset, batch_size=64, shuffle=True):
     features = pd.read_csv("Data/" + dataset + "_features.csv")
 
@@ -83,13 +56,12 @@ def get_loaders(dataset, batch_size=64, shuffle=True):
     return train_loader, val_loader, full_loader
 
 
-def evaluate(models, loss_fn, val_loader, has_label, device):
+def evaluate(model, loss_fn, val_loader, has_label, device):
     # goes through the test dataset and computes the test accuracy
     val_loss_cum = 0.0
 
     # bring the models into eval mode
-    for model in models:
-        model.eval()
+    model.eval()
     y_batch_val = None
 
     with torch.no_grad():
@@ -104,8 +76,7 @@ def evaluate(models, loss_fn, val_loader, has_label, device):
             x_batch_val = x_batch_val[:, :-1].to(device)
             x_val = x_batch_val
 
-            for model in models:
-                x_val = model(x_val)
+            x_val = model(x_val)
 
             loss = None
 
@@ -122,11 +93,10 @@ def evaluate(models, loss_fn, val_loader, has_label, device):
         return avg_val_loss
 
 
-def train_loop(models, train_loader, val_loader, loss_fn, optim, device, has_label, show=1, save=40, epochs=200):
+def train_loop(model, train_loader, val_loader, loss_fn, optim, device, has_label, show=1, save=40, epochs=200):
     for epoch in range(epochs):
         # reset statistics trackers
         train_loss_cum = 0.0
-        mse_loss_cum = 0.0
         num_samples_epoch = 0
         y_batch = None
         t = time.time()
@@ -145,13 +115,12 @@ def train_loop(models, train_loader, val_loader, loss_fn, optim, device, has_lab
 
             # zero grads and put model into train mode
             optim.zero_grad()
-            models[-1].train()
+            model.train()
 
             x = x_batch
 
             # forward pass
-            for model in models:
-                x = model(x)
+            x = model(x)
 
             # loss
             loss = None
@@ -173,7 +142,7 @@ def train_loop(models, train_loader, val_loader, loss_fn, optim, device, has_lab
         # average the accumulated statistics
         avg_train_loss = train_loss_cum / num_samples_epoch
         avg_train_loss = torch.sqrt(avg_train_loss)
-        val_loss = evaluate(models, loss_fn, val_loader, has_label, device)
+        val_loss = evaluate(model, loss_fn, val_loader, has_label, device)
         val_loss = torch.sqrt(val_loss)
         epoch_duration = time.time() - t
 
@@ -186,6 +155,6 @@ def train_loop(models, train_loader, val_loader, loss_fn, optim, device, has_lab
         # save checkpoint of model
         if (epoch % save == 0) and epoch > 0:
             save_path = f'model_epoch_{epoch}.pt'
-            torch.save(models[-1],
+            torch.save(model,
                        save_path)
             print(f'Saved model checkpoint to {save_path}')
