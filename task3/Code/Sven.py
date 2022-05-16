@@ -1,27 +1,47 @@
 #imports
 import numpy as np
-from numpy import random as ran
-import help_Sven as h
-import torch
-import Richard as R
+#import torch
+import torchvision.transforms as T
+from PIL import Image
+
+def turn_to_tensorset():
+
+    transform = T.Compose([
+        T.ToTensor(),
+        T.Resize((250, 350)),
+        T.Normalize(mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]),
+
+    ])
+    sa = np.empty((10000,3,250,350))
+    for i in range(10000):
+
+        name = str(i)
+        if i < 10:
+            name = '0000' + name
+        elif i < 100:
+            name = '000' + name
+        elif i < 1000:
+            name = '00' + name
+        else:
+            name = '0' + name
+        filename = '../Data/food/' + name + '.jpg'
+        im1 = Image.open(filename)
+        im1 = transform(im1)
+        im = im1.numpy()
+        sa[i] = im
+        if i%50 == 0:
+            print(f'Round: {i}')
+    
+    print(f'Before Save')    
+    np.save('../Data/data_as_np.npy',sa)
+    print(f'After Save')
 
 #data
-fname = '../Data/'
-food = fname + 'food/'
-train = np.loadtxt(fname + "train_triplets.txt", dtype=str)
-#test = np.loadtxt(fname + "test_triplets.txt", dtype=str)
+#fname = '../Data/'
+#food = fname + 'food/'
+#train = np.loadtxt(fname + "train_triplets.txt", dtype=str)
 
-train = h.swap(train)
-i = 1000
-A,B,C = h.get_ima(train,i)
+turn_to_tensorset()
 
-K = R.image_to_tensor('00905')
-
-print(A.shape)
-print(torch.min(A))
-print(torch.max(A))
-print(torch.min(K))
-print(torch.max(K))
-#print(B.shape)
-#print(C.shape)
-print('Hello World!')
+#k = np.load('../Data/data_as_np.npy')
