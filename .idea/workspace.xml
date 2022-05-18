@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="c49770c1-43d5-4dcb-88df-1500927d7ad2" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/task4/Code/task4_lib.py" beforeDir="false" afterPath="$PROJECT_DIR$/task4/Code/task4_lib.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/task4/Code/task4_lib.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -187,7 +187,12 @@
       <workItem from="1652424465073" duration="3409000" />
       <workItem from="1652428974553" duration="12441000" />
       <workItem from="1652514349501" duration="95000" />
-      <workItem from="1652699858664" duration="1295000" />
+      <workItem from="1652699858664" duration="2211000" />
+      <workItem from="1652711540770" duration="731000" />
+      <workItem from="1652771044674" duration="6000" />
+      <workItem from="1652802219435" duration="21000" />
+      <workItem from="1652802729497" duration="1519000" />
+      <workItem from="1652871875198" duration="354000" />
     </task>
     <servers />
   </component>
@@ -247,6 +252,11 @@
           <url>file://$PROJECT_DIR$/task4/Code/data_extraction.py</url>
           <line>63</line>
           <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/task4/Code/task4_lib.py</url>
+          <line>127</line>
+          <option name="timeStamp" value="21" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

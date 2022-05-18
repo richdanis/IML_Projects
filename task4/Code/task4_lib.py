@@ -1,5 +1,4 @@
 from torch.utils.data import DataLoader, Dataset
-import torch.nn as nn
 import torch
 import numpy as np
 import pandas as pd
@@ -20,6 +19,9 @@ class TrainDataset(Dataset):
 
 
 def get_loaders(dataset, batch_size=64, shuffle=True):
+
+    # return 80/20 split and full data loaders for training
+
     features = pd.read_csv("Data/" + dataset + "_features.csv")
 
     features = features.drop(columns=['Id', 'smiles'])
@@ -54,6 +56,98 @@ def get_loaders(dataset, batch_size=64, shuffle=True):
     full_loader = DataLoader(full_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=0, pin_memory=True)
 
     return train_loader, val_loader, full_loader
+
+
+def pre_evaluate(model, val_loader, device):
+    # goes through the test dataset and computes the test accuracy
+    rec_val_loss_cum = 0.0
+    reg_val_loss_cum = 0.0
+
+    # bring the models into eval mode
+    model.eval()
+
+    with torch.no_grad():
+        num_eval_samples = 0
+        for x_batch_val in val_loader:
+
+            y_batch_val = x_batch_val[:, -1]
+            y_batch_val = torch.reshape(y_batch_val, (y_batch_val.shape[0], 1))
+            y_batch_val = y_batch_val.to(device)
+
+            x_batch_val = x_batch_val[:, :-1].to(device)
+
+            loss = model(x_batch_val, y_batch_val)
+
+            num_samples_batch = x_batch_val.shape[0]
+            num_eval_samples += num_samples_batch
+            rec_val_loss_cum += model.reconstruction_loss * num_samples_batch
+            reg_val_loss_cum += model.regression_loss * num_samples_batch
+
+        avg_reg_val_loss = reg_val_loss_cum / num_eval_samples
+        avg_rec_val_loss = rec_val_loss_cum / num_eval_samples
+
+        return avg_reg_val_loss, avg_rec_val_loss
+
+
+def pre_train_loop(model, train_loader, val_loader, optim, device, show=1, save=40, epochs=200):
+
+    for epoch in range(epochs):
+        # reset statistics trackers
+        rec_train_loss_cum = 0.0
+        reg_train_loss_cum = 0.0
+        num_samples_epoch = 0
+        t = time.time()
+        # Go once through the training dataset (-> epoch)
+
+        for x_batch in train_loader:
+
+            y_batch = x_batch[:, -1]
+            y_batch = torch.reshape(y_batch, (y_batch.shape[0], 1))
+            y_batch = y_batch.to(device)
+
+            # move data to GPU
+            x_batch = x_batch[:, :-1]
+            x_batch = x_batch.to(device)
+
+            # zero grads and put model into train mode
+            optim.zero_grad()
+            model.train()
+
+            # forward pass and loss
+            loss = model(x_batch, y_batch)
+
+            # backward pass and gradient step
+            loss.backward()
+            optim.step()
+
+            # keep track of train stats
+            num_samples_batch = x_batch.shape[0]
+            num_samples_epoch += num_samples_batch
+            rec_train_loss_cum += model.reconstruction_loss * num_samples_batch
+            reg_train_loss_cum += model.regression_loss * num_samples_batch
+
+        # average the accumulated statistics
+        avg_reg_train_loss = reg_train_loss_cum / num_samples_epoch
+        avg_reg_train_loss = torch.sqrt(avg_reg_train_loss)
+        avg_rec_train_loss = rec_train_loss_cum / num_samples_epoch
+        val_reg_loss, val_rec_loss = pre_evaluate(model, val_loader, device)
+        val_reg_loss = torch.sqrt(val_reg_loss)
+        epoch_duration = time.time() - t
+
+        # print some infos
+        if epoch % show == 0:
+            print(f'Epoch {epoch} | Train reconstruction loss: {avg_rec_train_loss:.4f} | '
+                  f' Train regression loss: {avg_reg_train_loss:.4f} | '
+                  f' Validation reconstruction loss: {val_rec_loss:.4f} | '
+                  f' Validation regression loss: {val_reg_loss:.4f} | '
+                  f' Duration {epoch_duration:.2f} sec')
+
+        # save checkpoint of model
+        if (epoch % save == 0) and epoch > 0:
+            save_path = f'model_epoch_{epoch}.pt'
+            torch.save(model,
+                       save_path)
+            print(f'Saved model checkpoint to {save_path}')
 
 
 def evaluate(model, loss_fn, val_loader, has_label, device):
