@@ -57,7 +57,7 @@ def get_loaders(dataset, batch_size=64, shuffle=True):
 
     return train_loader, val_loader, full_loader
 
-
+# calculate validation score for regression and reconstruction
 def pre_evaluate(model, val_loader, device):
     # goes through the test dataset and computes the test accuracy
     rec_val_loss_cum = 0.0
@@ -88,7 +88,15 @@ def pre_evaluate(model, val_loader, device):
 
         return avg_reg_val_loss, avg_rec_val_loss
 
-
+# params:
+# model: model which is trained
+# train_loader: dataloader for train dataset
+# val_loader: dataloader for validation dataset
+# optim: optimizer
+# device: gpu or cpu
+# show: how often the training scores are printed
+# save: how often the model is saved
+# epochs: max number of epochs
 def pre_train_loop(model, train_loader, val_loader, optim, device, show=1, save=40, epochs=200):
 
     for epoch in range(epochs):
@@ -149,35 +157,27 @@ def pre_train_loop(model, train_loader, val_loader, optim, device, show=1, save=
                        save_path)
             print(f'Saved model checkpoint to {save_path}')
 
-
-def evaluate(model, loss_fn, val_loader, has_label, device):
+# calculate validation score for gap regressor
+def evaluate(model, loss_fn, val_loader, device):
     # goes through the test dataset and computes the test accuracy
     val_loss_cum = 0.0
 
     # bring the models into eval mode
     model.eval()
-    y_batch_val = None
 
     with torch.no_grad():
         num_eval_samples = 0
         for x_batch_val in val_loader:
 
-            if has_label:
-                y_batch_val = x_batch_val[:, -1]
-                y_batch_val = torch.reshape(y_batch_val, (y_batch_val.shape[0], 1))
-                y_batch_val = y_batch_val.to(device)
+            y_batch_val = x_batch_val[:, -1]
+            y_batch_val = torch.reshape(y_batch_val, (y_batch_val.shape[0], 1))
+            y_batch_val = y_batch_val.to(device)
 
             x_batch_val = x_batch_val[:, :-1].to(device)
-            x_val = x_batch_val
 
-            x_val = model(x_val)
+            x_batch_val = model(x_batch_val)
 
-            loss = None
-
-            if has_label:
-                loss = loss_fn(x_val, y_batch_val)
-            else:
-                loss = loss_fn(x_val, x_batch_val)
+            loss = loss_fn(x_batch_val, y_batch_val)
 
             num_samples_batch = x_batch_val.shape[0]
             num_eval_samples += num_samples_batch
@@ -186,22 +186,29 @@ def evaluate(model, loss_fn, val_loader, has_label, device):
         avg_val_loss = val_loss_cum / num_eval_samples
         return avg_val_loss
 
-
-def train_loop(model, train_loader, val_loader, loss_fn, optim, device, has_label, show=1, save=40, epochs=200):
+# params:
+# model: model which is trained
+# train_loader: dataloader for train dataset
+# val_loader: dataloader for validation dataset
+# loss_fn: loss function
+# optim: optimizer
+# device: gpu or cpu
+# show: how often the training scores are printed
+# save: how often the model is saved
+# epochs: max number of epochs
+def train_loop(model, train_loader, val_loader, loss_fn, optim, device, show=1, save=40, epochs=200):
     for epoch in range(epochs):
         # reset statistics trackers
         train_loss_cum = 0.0
         num_samples_epoch = 0
-        y_batch = None
         t = time.time()
         # Go once through the training dataset (-> epoch)
 
         for x_batch in train_loader:
 
-            if has_label:
-                y_batch = x_batch[:, -1]
-                y_batch = torch.reshape(y_batch, (y_batch.shape[0], 1))
-                y_batch = y_batch.to(device)
+            y_batch = x_batch[:, -1]
+            y_batch = torch.reshape(y_batch, (y_batch.shape[0], 1))
+            y_batch = y_batch.to(device)
 
             # move data to GPU
             x_batch = x_batch[:, :-1]
@@ -211,18 +218,11 @@ def train_loop(model, train_loader, val_loader, loss_fn, optim, device, has_labe
             optim.zero_grad()
             model.train()
 
-            x = x_batch
-
             # forward pass
-            x = model(x)
+            x_batch = model(x_batch)
 
             # loss
-            loss = None
-
-            if has_label:
-                loss = loss_fn(x, y_batch)
-            else:
-                loss = loss_fn(x, x_batch)
+            loss = loss_fn(x_batch, y_batch)
 
             # backward pass and gradient step
             loss.backward()
@@ -236,7 +236,7 @@ def train_loop(model, train_loader, val_loader, loss_fn, optim, device, has_labe
         # average the accumulated statistics
         avg_train_loss = train_loss_cum / num_samples_epoch
         avg_train_loss = torch.sqrt(avg_train_loss)
-        val_loss = evaluate(model, loss_fn, val_loader, has_label, device)
+        val_loss = evaluate(model, loss_fn, val_loader, device)
         val_loss = torch.sqrt(val_loss)
         epoch_duration = time.time() - t
 
